@@ -1,9 +1,9 @@
 # BitTokens: Efficient numeracy in language models through single-token number embeddings
 
 <p align="center">
-<a href="https://arxiv.org/abs/2510.06824"><img src="https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arxiv version"></a>
-<a href="https://icml.cc/"> <img src="https://icml.cc/static/core/img/ICML-logo.svg" height="28x"> </a>
-<a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a>
+<a href="https://arxiv.org/abs/2510.06824" target="_blank"><img src="https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arxiv version"></a>
+<a href="https://icml.cc/" target="_blank"> <img src="https://icml.cc/static/core/img/ICML-logo.svg" height="28x"> </a>
+<a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
@@ -12,8 +12,8 @@ a novel encoding strategy that represents any number as a single token using its
 ![Figure 1](/images/fig1.png)
 
 
-## BitTokens
-The implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
+## How to use BitTokens
+We provide an intuitive [jupyter notebook](bittokens.ipynb) that highlights the benefits of BitTokens and how they can be integrated into Transformer models. A more detailed implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
 
 
 ## Setup
@@ -62,7 +62,7 @@ uv pip install git+https://github.com/KellerJordan/Muon
     ```
 
 ### Get the datasets
-1. Generate the number problems for each task for each phase (roughly 20G):
+1. Generate the number problems for each task for each phase (roughly `20G`):
     ```sh
     # Decimal version (used for all base-10 baselines and for testing)
     uv run $PROJECT_PATH/data_generation/data_generation_v2.py --save_dir $DATA_PATH
@@ -71,7 +71,7 @@ uv pip install git+https://github.com/KellerJordan/Muon
     ```
 2. Download the fineweb text data
     Download the fineweb_10BT subset from https://huggingface.co/datasets/HuggingFaceFW/fineweb and save it under `$DATA_PATH/`
-3. Decode fineweb to `.txt` (roughly 2.4G)
+3. Decode fineweb to `.txt` (roughly `2.4G`)
     ```sh
     uv run $PROJECT_PATH/data_generation/decode_fineweb.py --folder_dir $DATA_PATH/sample/10BT/ --save_path $DATA_PATH/
     ```
@@ -82,9 +82,11 @@ To recreate a BitToken model in a multiTask setting similar to the manuscript, r
 ```sh
 uv run $PROJECT_PATH/train.py --load_config_from $PROJECT_PATH/configs/config_bittoken_multiTask.py --tqdm --verbose --deterministic --seed 999
 ```
-This has been tested on a `Nvidia DGX A100 80GB` GPU.
+> [!NOTE]
+> 
+> The first run has a longer startup time because it tokenizes the entire dataset first and stores it in a cache directory under `$DATA_PATH/`.
 
-The results will be stored in the folder `$PROJECT_PATH/trained`.
+This has been tested on a `Nvidia DGX A100 80GB` GPU. The results will be stored in the folder `$PROJECT_PATH/trained`.
 
 ## Citation
 If you find our work useful, please cite our ICML 2026 paper:
