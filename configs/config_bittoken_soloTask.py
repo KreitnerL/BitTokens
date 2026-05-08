@@ -21,9 +21,9 @@ DATA_PATH = os.getenv("DATA_PATH")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
-base_config.num_embedding_type = "float64"
+base_config.num_embedding_type = "bittoken"
 base_config.normalize_num_embedding = False
 base_config.add_reciprocal = True
 base_config.combine_strategy = "zero_pad"
@@ -49,7 +49,7 @@ train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 
 # Training data parameters
 train_set_paths_and_curriculum_types = {
-    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/21903304"),
+    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/21903304"),
 }
 
 train_config.train_set_paths = list(train_set_paths_and_curriculum_types.keys())
@@ -83,7 +83,7 @@ train_config.val_additional_metrics = [
 ]
 
 # Training hyperparameters
-train_config.save_dir = f"{PROJECT_PATH}/trained/soloTask/fe"
+train_config.save_dir = f"{PROJECT_PATH}/trained/soloTask/bittoken"
 train_config.train_token_budget = 10_000_000_000  # Rougly equals 3 epochs (4_717_802_025)
 train_config.num_warmup_tokens = train_config.train_token_budget//20
 train_config.eval_every_k_tokens = 16*384*1024  # 100 steps or 1% of the token budget
@@ -98,7 +98,7 @@ train_config.grad_clip = -1
 
 # WandB parameters
 train_config.wandb_project = "STEM"
-train_config.wandb_group = "soloTask_fe"
+train_config.wandb_group = "soloTask_bittoken"
 
 
 ############################################

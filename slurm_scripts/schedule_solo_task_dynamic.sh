@@ -3,7 +3,7 @@
 source .env
 
 declare -A implementations
-implementations["fe"]="fe"
+implementations["bittoken"]="bittoken"
 implementations["sd"]="sd"
 implementations["td"]="td"
 implementations["FoNE"]="FoNE"

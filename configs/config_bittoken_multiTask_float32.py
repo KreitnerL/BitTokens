@@ -21,9 +21,9 @@ DATA_PATH = os.getenv("DATA_PATH")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
-base_config.num_embedding_type = "float64"
+base_config.num_embedding_type = "bittoken"
 base_config.normalize_num_embedding = False
 base_config.add_reciprocal = True
 base_config.combine_strategy = "zero_pad"
@@ -50,15 +50,15 @@ base_config.difficulty_column = "difficulty"
 train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 # Training data parameters
 train_set_paths_and_curriculum_types = {
-    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/46503288"),
-    f"{DATA_PATH}/Multiplication_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/69490979"),
-    f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/4569718"),
-    f"{DATA_PATH}/DivM_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/53325323"),
-    f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/22397498"),
-    f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/55600403"),
-    f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/14453464"),
-    f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/41629249"),
-    f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/fe_gpt2_47200109/13591814")
+    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/46503288"),
+    f"{DATA_PATH}/Multiplication_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/69490979"),
+    f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/4569718"),
+    f"{DATA_PATH}/DivM_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/53325323"),
+    f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/22397498"),
+    f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/55600403"),
+    f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/14453464"),
+    f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/41629249"),
+    f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/bittoken_gpt2_47200109/13591814")
 }
 train_config.train_set_paths = list(train_set_paths_and_curriculum_types.keys())
 train_config.train_dataset_curriculum_types = [v[0] for v in train_set_paths_and_curriculum_types.values()]
@@ -104,7 +104,7 @@ train_config.val_additional_metrics = [
     MetricFunction.EXACT_NUMBER_ACC,
 ]
 # Training hyperparameters
-train_config.save_dir = f"{PROJECT_PATH}/trained/multiTask/fe"
+train_config.save_dir = f"{PROJECT_PATH}/trained/multiTask/bittoken"
 train_config.train_token_budget = 10_000_000_000
 train_config.num_warmup_tokens = train_config.train_token_budget//10
 train_config.eval_every_k_tokens = 32*384*1024
@@ -119,7 +119,7 @@ train_config.grad_clip = -1
 
 # WandB parameters
 train_config.wandb_project = "STEM"
-train_config.wandb_group = "multi_task_fe"
+train_config.wandb_group = "multi_task_bittoken"
 
 
 

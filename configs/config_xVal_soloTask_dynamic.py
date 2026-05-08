@@ -23,7 +23,7 @@ TASK: Task = os.getenv("TASK")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
 base_config.num_embedding_type = "xval"
 base_config.base = 10
@@ -52,14 +52,14 @@ train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 match TASK:
     case Task.ADDITION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/21903304"),
+            f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/21903304"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Addition_decimal_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "efficient_number_prompt"),
         }
     case Task.MULTIPLICATION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/94881869_diff"),
+            f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/94881869_diff"),
 
         }
         val_paths_metrics_dataset_types = {
@@ -67,48 +67,48 @@ match TASK:
         }
     case Task.DIVISION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/26549495_diff"),
+            f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/26549495_diff"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Division_decimal_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
         }
     case Task.MIN_MAX:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/21268272"),
+            f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/21268272"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/MinMax_decimal_uniform_val_10k.csv.gz": (MetricFunction.EXACT_NUMBER_ACC, "efficient_number_prompt"),
         }
     case Task.INTERVAL:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/15330129"),        }
+            f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/15330129"),        }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Interval_decimal_uniform_val_10k.csv.gz": (MetricFunction.NORMALIZED_QUINT_CLASS_ACC, "efficient_number_prompt"),
         }
     case Task.SORTING:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/25805100"),
+            f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/25805100"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Sorting_decimal_uniform_val_10k.csv.gz": (MetricFunction.EXACT_NUMBER_ACC, "efficient_number_prompt"),
         }
     case Task.MEAN:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/58115172_diff")
+            f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/58115172_diff")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Mean_decimal_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number")
         }
     case Task.STD:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Std_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/69357492")
+            f"{DATA_PATH}/Std_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/69357492")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Std_decimal_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number")
         }
     case Task.TEXT:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/fe_gpt2_47200109/13591814")
+            f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/bittoken_gpt2_47200109/13591814")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/val_text.txt": (MetricFunction.SCALED_PPL_HARD, "pretokenized_number", False)

@@ -2,8 +2,8 @@
 
 <p align="center">
 <a href="https://arxiv.org/abs/2510.06824"><img src="https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arxiv version"></a>
-<img src="https://icml.cc/static/core/img/ICML-logo.svg" height="28x">
-<a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ"><img src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a>
+<a href="https://icml.cc/"> <img src="https://icml.cc/static/core/img/ICML-logo.svg" height="28x"> </a>
+<a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
@@ -13,7 +13,7 @@ a novel encoding strategy that represents any number as a single token using its
 
 
 ## BitTokens
-The implementation of BitTokens can be found in the [float64.embedding.py](networks/number_embedding_modules/float64_embedding.py) file.
+The implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
 
 
 ## Setup
@@ -80,7 +80,7 @@ uv pip install git+https://github.com/KellerJordan/Muon
 ## Running experiments
 To recreate a BitToken model in a multiTask setting similar to the manuscript, run:
 ```sh
-uv run $PROJECT_PATH/train.py --load_config_from $PROJECT_PATH/configs/config_fe_multiTask.py --tqdm --verbose --deterministic --seed 999
+uv run $PROJECT_PATH/train.py --load_config_from $PROJECT_PATH/configs/config_bittoken_multiTask.py --tqdm --verbose --deterministic --seed 999
 ```
 This has been tested on a `Nvidia DGX A100 80GB` GPU.
 

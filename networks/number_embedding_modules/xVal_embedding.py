@@ -99,7 +99,7 @@ class xValEmbedding(ABCEmbedding):
         )
 
 if __name__ == "__main__":
-    # Test the Float64Embedding class using the reusable test utility
+    # Test the xValEmbedding class using the reusable test utility
     from test_utils import run_standard_test
     
     # Test parameters

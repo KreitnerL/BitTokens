@@ -21,7 +21,7 @@ DATA_PATH = os.getenv("DATA_PATH")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
 base_config.num_embedding_type = "fone"
 base_config.base = 10
@@ -48,13 +48,13 @@ base_config.verbose = True
 train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 # Training data parameters
 train_set_paths_and_curriculum_types = {
-    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/21903304"),
-    f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/94881869"),
-    f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/26549495"),
-    f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/21268272"),
-    f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/15330129"),
-    f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/25805100"),
-    f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/13591814")
+    f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/21903304"),
+    f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/94881869"),
+    f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/26549495"),
+    f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/21268272"),
+    f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/15330129"),
+    f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/25805100"),
+    f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/13591814")
 }
 train_config.train_set_paths = [v for v in train_set_paths_and_curriculum_types.keys()]
 train_config.train_dataset_curriculum_types = [v[0] for v in train_set_paths_and_curriculum_types.values()]

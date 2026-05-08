@@ -21,7 +21,7 @@ DATA_PATH = os.getenv("DATA_PATH")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
 base_config.num_embedding_type = "fone"
 base_config.base = 10
@@ -48,7 +48,7 @@ train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 
 # Training data parameters
 train_set_paths_and_curriculum_types = {
-    f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109_pos/58115172"),
+    f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109_pos/58115172"),
 }
 
 train_config.train_set_paths = list(train_set_paths_and_curriculum_types.keys())

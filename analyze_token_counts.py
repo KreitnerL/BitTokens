@@ -35,7 +35,7 @@ def extract_tokenizer_name_from_args(source_folder: Path) -> str:
         source_folder (Path): Path to the source folder containing args.yml.
         
     Returns:
-        str: The tokenizer name (e.g., 'fe_gpt2').
+        str: The tokenizer name (e.g., 'bittoken_gpt2').
         
     Raises:
         FileNotFoundError: If args.yml is not found.
@@ -55,7 +55,7 @@ def extract_tokenizer_name_from_args(source_folder: Path) -> str:
     
     tokenizer_path = Path(config['tokenizer_dir'])
     
-    # Extract tokenizer name from path like /path/to/tokenizers/num_text/fe_gpt2
+    # Extract tokenizer name from path like /path/to/tokenizers/num_text/bittoken_gpt2
     if tokenizer_path.parent.name == 'num_text' and tokenizer_path.parent.parent.name == 'tokenizers':
         return tokenizer_path.name
     else:

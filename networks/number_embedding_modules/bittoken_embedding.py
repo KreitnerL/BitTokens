@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    # Add project root to path when running directly 
+    # Add project root to path when running directly
     import sys
     from pathlib import Path
     project_root = Path(__file__).resolve().parent.parent.parent
@@ -16,7 +16,7 @@ from networks.number_embedding_modules.abc_embedding import ABCEmbedding
 from utils.enums import COMBINE_STRATEGY, NUMBER_HEAD
 
 
-class Float64Embedding(ABCEmbedding):
+class BitTokenEmbedding(ABCEmbedding):
     """
     Number embedding module that represents numbers using the IEEE 754 float64 binary representation.
     - 1 bit for the sign (0 for positive, 1 for negative)
@@ -25,7 +25,7 @@ class Float64Embedding(ABCEmbedding):
     This results in a 64-dimensional binary vector for each number. The embedding can optionally include the reciprocal (1/x) of the number as well.
     The embedding is the scaled to the range [-1, 1] and concatenated with its negation to form a 128-dimensional vector per number (256 if reciprocal is included).
     """
-    
+
     def __init__(
             self,
             n_embed: int,
@@ -38,8 +38,8 @@ class Float64Embedding(ABCEmbedding):
             precision_type: torch.dtype=torch.float64,
         ):
         """
-        Initialize the Float64Embedding module.
-        
+        Initialize the BitTokenEmbedding module.
+
         Args:
             n_embed (int): Embedding dimension of the model
             device (str): Device to run computations on
@@ -55,7 +55,7 @@ class Float64Embedding(ABCEmbedding):
         self.add_reciprocal = add_reciprocal
         self.loss_type = loss_type
         self.precision_type = precision_type
-        
+
         # Calculate embedding dimensions first
         if self.precision_type == torch.float64:
             self.freq_size = 64
@@ -87,7 +87,7 @@ class Float64Embedding(ABCEmbedding):
                     def forward(self, x):
                         return x[:, self.start:self.end]
                 num_head_list.append(ChannelSlice(0, self.output_size))
-    
+
         match loss_type:
             case "bce":
                 self.loss_func = torch.nn.BCEWithLogitsLoss(reduction="none")
@@ -96,19 +96,18 @@ class Float64Embedding(ABCEmbedding):
                 self.loss_func = torch.nn.MSELoss(reduction="none")
             case _:
                 raise ValueError(f"Unsupported loss type: {loss_type}")
-            
+
         self.num_head: torch.nn.Module = torch.nn.Sequential(*num_head_list)
         # self.num_head = torch.nn.Linear(n_embed, self.output_size)
-            
+
         if self.combination_method == "weighted" or self.combination_method == "weighted_sum":
             self.bit_weight_matrix = torch.nn.Linear(self.embedding_size, n_embed, bias=False)
-        
+
         self.float64_bit_shifts: torch.LongTensor = torch.arange(self.freq_size-1, -1, -1, device=device, dtype=torch.int64)
         self.freq_loss_weights = torch.linspace(1, 1+self.freq_size*frequency_weight_slope, self.freq_size, device=device, dtype=torch.float32).unsqueeze(0)
         self.freq_loss_weights = self.freq_loss_weights - self.freq_loss_weights.min() + 1
         self.freq_loss_weights = self.freq_loss_weights / self.freq_loss_weights.mean()
 
-    # @torch.compile(fullgraph=True)
     def float64_tensor_to_binary_tensor(self, tensor_in: torch.DoubleTensor) -> torch.LongTensor:
         """
         Converts a float64 PyTorch tensor to its IEEE 754 binary representation,
@@ -123,8 +122,7 @@ class Float64Embedding(ABCEmbedding):
         int_representation = tensor_in.view(torch.int64).unsqueeze(-1)
         bits = (int_representation >> self.float64_bit_shifts) & 1
         return bits
-    
-    # @torch.compile(fullgraph=True)
+
     def binary_tensor_to_float64_tensor(self, bits_int64: torch.LongTensor) -> torch.DoubleTensor:
         """
         Reconstructs a float64 tensor from its IEEE 754 binary representation.
@@ -141,7 +139,7 @@ class Float64Embedding(ABCEmbedding):
         reconstructed_int = torch.sum(bits_int64 * weights, dim=-1)
         int_type = torch.int64 if self.precision_type == torch.float64 else torch.int32
         return reconstructed_int.to(dtype=int_type).view(self.precision_type).to(torch.float64)
-    
+
     @override
     def forward(self, x: torch.DoubleTensor) -> torch.FloatTensor | torch.BFloat16Tensor:
         x_encoding = self.float64_tensor_to_binary_tensor(x)
@@ -152,7 +150,7 @@ class Float64Embedding(ABCEmbedding):
             x_reciprocal_encoding = torch.empty(0, dtype=x_encoding.dtype, device=x_encoding.device)
         x_norm = torch.cat([x_encoding, x_reciprocal_encoding], dim=-1)
         return x_norm
-    
+
     @override
     def combine_embeds(
         self,
@@ -186,7 +184,7 @@ class Float64Embedding(ABCEmbedding):
         else:
             raise NotImplementedError(f"Combination method {self.combination_method} not implemented.")
         return combined_embeds
-    
+
     @override
     def compute_num_loss(
         self,
@@ -200,10 +198,10 @@ class Float64Embedding(ABCEmbedding):
         assert out.hidden_states is not None, "Model output must contain hidden states for number loss computation."
         x_base_digits_norm_pred = self.num_head(out.hidden_states[-1][:, hidden_states_slice][number_mask]).float()
         x_base_digits_norm: torch.DoubleTensor = num_encodings[number_mask][:,:self.output_size].float()
-        
+
         frequency_loss: torch.Tensor = self.loss_func.forward(x_base_digits_norm_pred, x_base_digits_norm)
         frequency_loss = frequency_loss * self.freq_loss_weights
-        
+
         num_loss_per_sample = torch.zeros_like(number_mask, dtype=torch.float32)
         num_loss_per_sample[number_mask] = frequency_loss.mean(dim=-1)
         train_metrics = {
@@ -211,7 +209,7 @@ class Float64Embedding(ABCEmbedding):
             "num_loss_per_frequency": frequency_loss.detach().mean(dim=0),
         }
         return train_metrics
-    
+
     @override
     def decode(self, out: CausalLMOutputWithCrossAttentions, number_mask: torch.BoolTensor) -> torch.DoubleTensor:
         assert out.hidden_states is not None, "Model output must contain hidden states for decoding."
@@ -222,18 +220,17 @@ class Float64Embedding(ABCEmbedding):
         return num_preds
 
 
-
 if __name__ == "__main__":
-    # Test the Float64Embedding class using the reusable test utility
+    # Test the BitTokenEmbedding class using the reusable test utility
     from test_utils import run_dtype_test
-    
+
     # Test parameters
     BOTTLENECK_DTYPE = torch.bfloat16
-    
+
     # Initialize embedding
-    base_embedding = Float64Embedding(
-        n_embed=384, 
+    base_embedding = BitTokenEmbedding(
+        n_embed=384,
         device="cpu",
     ).to(dtype=BOTTLENECK_DTYPE)
-    
+
     results = run_dtype_test(embedding_module=base_embedding, dtype=torch.float64)

@@ -23,9 +23,9 @@ TASK: Task = os.getenv("TASK")
 base_config: BaseArgumentParser = Namespace()
 
 # Model architecture parameters
-base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/fe_gpt2"
+base_config.tokenizer_dir = f"{PROJECT_PATH}/tokenizers/num_text/bittoken_gpt2"
 base_config.model = "rope_stem"
-base_config.num_embedding_type = "float64"
+base_config.num_embedding_type = "bittoken"
 base_config.normalize_num_embedding = False
 base_config.add_reciprocal = True
 base_config.combine_strategy = "zero_pad"
@@ -54,15 +54,15 @@ train_config = cast(TrainArgumentParser, Namespace(**vars(base_config)))
 match TASK:
     case Task.ADDITION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/21903304"),
+            f"{DATA_PATH}/Addition_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/21903304"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Addition_decimal_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "efficient_number_prompt"),
         }
     case Task.MULTIPLICATION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Multiplication_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/62268622"),
-            f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/94881869"),
+            f"{DATA_PATH}/Multiplication_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/62268622"),
+            f"{DATA_PATH}/Multiplication_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/94881869"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Multiplication_binary_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
@@ -70,8 +70,8 @@ match TASK:
         }
     case Task.DIVISION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/DivM_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/62072059"),
-            f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/26549495"),
+            f"{DATA_PATH}/DivM_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/62072059"),
+            f"{DATA_PATH}/Division_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/26549495"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/DivM_binary_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
@@ -79,8 +79,8 @@ match TASK:
         }
     case Task.EXPONENTIATION:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Exponentation_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/28310628"),
-            f"{DATA_PATH}/Exponentation_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/13731216"),
+            f"{DATA_PATH}/Exponentation_binary_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/28310628"),
+            f"{DATA_PATH}/Exponentation_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/13731216"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Exponentation_binary_uniform_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
@@ -88,29 +88,29 @@ match TASK:
         }
     case Task.MIN_MAX:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/21268272"),
+            f"{DATA_PATH}/MinMax_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/21268272"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/MinMax_decimal_uniform_val_10k.csv.gz": (MetricFunction.EXACT_NUMBER_ACC, "efficient_number_prompt"),
         }
     case Task.INTERVAL:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/15330129"),
+            f"{DATA_PATH}/Interval_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/15330129"),
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Interval_decimal_uniform_val_10k.csv.gz": (MetricFunction.NORMALIZED_QUINT_CLASS_ACC, "efficient_number_prompt")
         }
     case Task.SORTING:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/fe_gpt2_47200109/25805100")
+            f"{DATA_PATH}/Sorting_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.STANDARD, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/25805100")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Sorting_decimal_uniform_val_10k.csv.gz": (MetricFunction.EXACT_NUMBER_ACC, "efficient_number_prompt")
         }
     case Task.MEAN:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Mean_binary_uniform_debug_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/71955242"),
-            f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/58115172")
+            f"{DATA_PATH}/Mean_binary_uniform_debug_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/71955242"),
+            f"{DATA_PATH}/Mean_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/58115172")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Mean_binary_uniform_debug_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
@@ -118,8 +118,8 @@ match TASK:
         }
     case Task.STD:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/Std_binary_uniform_debug_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/fe_gpt2_47200109/80076284"),
-            f"{DATA_PATH}/Std_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/fe_gpt2_47200109/69357492")
+            f"{DATA_PATH}/Std_binary_uniform_debug_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.CURRICULUM, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/80076284"),
+            f"{DATA_PATH}/Std_decimal_uniform_train_30M.csv.gz": (DATASET_CURRICULUM_TYPE.ENDGAME, f"{DATA_PATH}/cache/bittoken_gpt2_47200109/69357492")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/Std_binary_uniform_debug_val_10k.csv.gz": (MetricFunction.LOG_SMAPE, "curriculum_number"),
@@ -127,7 +127,7 @@ match TASK:
         }
     case Task.TEXT:
         train_set_paths_and_curriculum_types = {
-            f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/fe_gpt2_47200109/13591814")
+            f"{DATA_PATH}/000_00000_train.txt": (DATASET_CURRICULUM_TYPE.STANDARD,  f"{DATA_PATH}/cache/bittoken_gpt2_47200109/13591814")
         }
         val_paths_metrics_dataset_types = {
             f"{DATA_PATH}/val_text.txt": (MetricFunction.SCALED_PPL_HARD, "pretokenized_number", False)
@@ -164,7 +164,7 @@ train_config.val_additional_metrics = [
 ]
 
 # Training hyperparameters
-train_config.save_dir = f"{PROJECT_PATH}/trained/soloTask/fe"
+train_config.save_dir = f"{PROJECT_PATH}/trained/soloTask/bittoken"
 train_config.train_token_budget = 10_000_000_000  # Rougly equals 3 epochs (4_717_802_025)
 train_config.num_warmup_tokens = train_config.train_token_budget//20
 train_config.eval_every_k_tokens = 16*384*1024  # 100 steps or 1% of the token budget
@@ -179,7 +179,7 @@ train_config.grad_clip = -1
 
 # WandB parameters
 train_config.wandb_project = "STEM"
-train_config.wandb_group = "soloTask_fe"
+train_config.wandb_group = "soloTask_bittoken"
 
 
 ############################################

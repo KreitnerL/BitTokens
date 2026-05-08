@@ -12,8 +12,8 @@ from transformers.utils.generic import ModelOutput
 
 from networks.number_embedding_modules.abc_embedding import ABCEmbedding
 from networks.number_embedding_modules.base10_embedding import Base10Embedding
-from networks.number_embedding_modules.float64_embedding import (
-    Float64Embedding,
+from networks.number_embedding_modules.bittoken_embedding import (
+    BitTokenEmbedding,
 )
 from networks.number_embedding_modules.fone_embedding import FoNE
 from networks.number_embedding_modules.xVal_embedding import xValEmbedding
@@ -93,8 +93,8 @@ def create_stem_head_model(superclass: Type[GPT2LMHeadModel], args: BaseArgument
             self.num_embedding_module: ABCEmbedding
             device_str = str(args.device).split(":")[0]
             match args.num_embedding_type:
-                case "float64":
-                    self.num_embedding_module = Float64Embedding(
+                case "bittoken":
+                    self.num_embedding_module = BitTokenEmbedding(
                         n_embed=config.n_embd,
                         device=device_str,
                         add_reciprocal=args.add_reciprocal,

@@ -4,7 +4,7 @@ source .env
 
 declare -A task_metrics
 declare -A implementations
-implementations["fe"]="fe"
+implementations["bittoken"]="bittoken"
 implementations["sd"]="sd"
 implementations["td"]="td"
 implementations["FoNE"]="FoNE"

@@ -21,7 +21,7 @@ class BaseArgumentParser(Tap, ABC):
     tokenizer_dir: Path                      # Path to tokenizer directory
 
     combine_strategy: COMBINE_STRATEGY = "sum" # Strategy to combine number encoding with input embeddings
-    num_embedding_type: Literal["fone", "xval","float64", "base10"] = "float64" # Type of loss to use for numerical values
+    num_embedding_type: Literal["fone", "xval", "bittoken", "base10"] = "bittoken" # Type of loss to use for numerical values
     float_type: Literal["float32", "float64"] = "float64" # Type of float to use for numerical values
     base: int = 2                     # Base for number encoding
     add_reciprocal: bool = False        # Whether to include 1/x in the embedding
