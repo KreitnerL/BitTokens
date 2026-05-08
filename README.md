@@ -1,11 +1,13 @@
 # BitTokens: Efficient numeracy in language models through single-token number embeddings
 
 <p align="center">
-<a href="https://arxiv.org/abs/2510.06824" target="_blank"><img src="https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arxiv version"></a>
-<a href="https://icml.cc/" target="_blank"> <img src="https://icml.cc/static/core/img/ICML-logo.svg" height="28x"> </a>
-<a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a>
-<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
+<a href="https://arxiv.org/abs/2510.06824" target="_blank"><img src="https://img.shields.io/badge/arXiv-2510.06824-b31b1b.svg" alt="arxiv paper"></a>
+<a href="https://openreview.net/forum?id=Bh4Ubk80M8"><img src="https://img.shields.io/badge/ICML 2026-Spotlight-gold" alt="ICML 2026 Spotlight"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License"></a>
 </p>
+</p>
+<!-- <a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a> -->
+
 
 LLMs perform poorly on arithmetic tasks, requiring excessive reasoning tokens to achieve good performance. We propose BitTokens,
 a novel encoding strategy that represents any number as a single token using its IEEE 754 binary floating-point representation. This single-token number encoding allows language models to solve arithmetic tasks both effectively and efficiently.

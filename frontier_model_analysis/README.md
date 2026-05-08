@@ -1,6 +1,6 @@
 # Frontier Model Numeracy Benchmark — Reproduction and Analysis
 
-This folder contains the code used to generate, collect, and analyze frontier model results reported in the paper (ICLR submission). It supports launching API requests to multiple model providers (via OpenRouter and Google GenAI/Gemini), saving standardized CSV outputs, and producing all figures and tables used in the paper.
+This folder contains the code used to generate, collect, and analyze frontier model results reported in the paper (ICML submission). It supports launching API requests to multiple model providers (via OpenRouter and Google GenAI/Gemini), saving standardized CSV outputs, and producing all figures and tables used in the paper.
 
 - Raw result generation: `launch_openrouter_requests.py`
 - Example mass launch: `launch_frontier_baselines.sh`
