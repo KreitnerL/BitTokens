@@ -1,0 +1,11 @@
+Task,Metric,Subword,Single Digit,xVal,FoNE,BitToken (Ours)
+Min/Max,Exact match accuracy,0.997,1.000,,, 
+Interval,Exact match accuracy,0.999,1.000,,, 
+Sorting,Exact match accuracy,,,,, 
+Add,log-sMAPE,0.999,1.000,,0.851,0.998
+Mult,log-sMAPE,0.564,0.964,,0.328,0.985
+Div,log-sMAPE,0.564,0.773,,0.236,0.995
+Exp,log-sMAPE,0.403,0.450,0.047,0.366,0.391
+Mean,log-sMAPE,0.976,0.965,0.060,0.444,0.534
+Std,log-sMAPE,0.365,0.420,0.057,0.191,0.354
+Fineweb,Perplexity,,,,,

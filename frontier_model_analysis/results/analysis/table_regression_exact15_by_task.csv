@@ -1,0 +1,14 @@
+Model,Reasoning,Addition,Multiplication,Division,Mean,Std,Exponentiation
+GPT OSS 120B,maximal,89.4,87.2,45.4,71.2,12.6,13.4
+Qwen3 235B 2507,maximal,92.0,64.2,47.0,71.0,12.8,10.4
+Qwen3 235B 2507,none,64.4,18.2,15.6,37.2,3.0,3.4
+DeepSeek v3.1,maximal,92.4,63.6,54.0,71.2,11.0,10.6
+DeepSeek v3.1,none,74.6,20.2,16.4,42.6,3.4,3.2
+Kimi K2 0905,none,70.2,23.2,21.0,44.0,2.6,2.8
+Llama 4 Maverick,none,50.0,15.6,13.6,34.6,2.2,2.8
+GPT 5,maximal,98.4,97.8,91.4,73.8,34.4,46.8
+GPT 5,minimal,76.6,14.2,6.6,33.2,3.8,2.4
+Gemini 2.5 Pro,maximal,91.0,42.2,48.0,67.6,8.8,8.2
+Gemini 2.5 Pro,minimal,82.2,20.6,21.8,55.8,4.4,3.4
+Gemini 2.5 Flash,maximal,84.0,27.8,31.6,63.4,7.0,5.6
+Gemini 2.5 Flash,none,72.2,13.6,17.4,40.8,2.8,2.2

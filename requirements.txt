@@ -1,0 +1,32 @@
+# Generated from pyproject.toml
+# Python ==3.13 required
+
+accelerate==1.6.0
+anthropic==0.50.0
+bitsandbytes==0.45.5
+torch==2.11
+google-genai==1.5.0
+ipykernel==6.29.5
+ipympl==0.9.7
+matplotlib==3.10.1
+natsort==8.4.0
+openai==1.65.5
+overrides==7.7.0
+pandas==2.2.3
+polars==1.30.0
+pyarrow==21.0.0
+python-dotenv==1.0.1
+ruff==0.11.11
+scikit-learn==1.6.1
+seaborn==0.13.2
+tiktoken==0.9.0
+torchmetrics==1.6.2
+tqdm==4.67.1
+transformers==4.48.0
+typed-argument-parser==1.10.1
+wandb==0.19.8
+
+# Note: PyTorch should be installed from the custom index:
+# https://download.pytorch.org/whl/cu126
+
+# Note: flash-attn and muon must be installed manually.

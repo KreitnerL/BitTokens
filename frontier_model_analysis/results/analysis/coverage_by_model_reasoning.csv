@@ -1,0 +1,14 @@
+model,reasoning,n_samples,mean_perf
+deepseek__deepseek-chat-v3.1,maximal,4500,0.8334929070827686
+deepseek__deepseek-chat-v3.1,none,4500,0.6188067378605949
+google__gemini-2.5-flash,maximal,4500,0.7172744398569983
+google__gemini-2.5-flash,none,4500,0.6346926033189806
+google__gemini-2.5-pro,maximal,4500,0.7839384436460177
+google__gemini-2.5-pro,minimal,4500,0.6824924057865659
+meta-llama__llama-4-maverick,none,4500,0.567899522205
+moonshotai__kimi-k2-0905,none,4500,0.6406175465352817
+openai__gpt-5,maximal,4500,0.9390087458949583
+openai__gpt-5,minimal,4500,0.5971890839400781
+openai__gpt-oss-120b,maximal,4500,0.8553742782701974
+qwen__qwen3-235b-a22b-2507,none,4500,0.6217316470852022
+qwen__qwen3-235b-a22b-thinking-2507,maximal,4500,0.849560184240359

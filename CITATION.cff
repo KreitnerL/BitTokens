@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "BitTokens: Efficient numeracy in language models through single-token number embeddings"
+message: "If you use this software, please cite it."
+authors:
+  - family-names: Kreitner
+    given-names: Linus
+  - family-names: Hager
+    given-names: Paul
+  - family-names: Mengedoht
+    given-names: Jonathan
+  - family-names: Kaissis
+    given-names: Georgios
+  - family-names: Rueckert
+    given-names: Daniel
+  - family-names: Menten
+    given-names: Martin J.
+repository-code: "https://github.com/KreitnerL/BitTokens"
+license: MIT
