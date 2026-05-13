@@ -187,6 +187,3 @@ pyrightconfig.json
 .pyrightignore
 
 __marimo__/
-
-# Ephemeral bundle for `marimo export html-wasm` (see scripts/prepare_marimo_wasm_public.sh)
-/public/
