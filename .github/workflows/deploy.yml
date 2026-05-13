@@ -26,10 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -45,11 +45,14 @@ jobs:
           rm -rf _site/marimo
           marimo export html-wasm bittokens_notebook.py -o _site/marimo --mode edit -f
           touch _site/.nojekyll
+          test -f _site/marimo/index.html
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
+          # upload-pages-artifact v4+ omits dotfiles unless explicitly included; keep .nojekyll so Pages does not run Jekyll on assets.
+          include-hidden-files: true
 
   deploy:
     needs: build
@@ -60,4 +63,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
