@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BitTokens — ICML 2026 Spotlight · Efficient numeracy via single-token number embeddings</title>
+  <meta name="description"
+        content="ICML 2026 Spotlight · BitTokens — single-token IEEE 754 number embeddings for LLMs. Frontier numeracy benchmark, desiderata, code, arXiv 2510.06824.">
+  <meta name="keywords" content="BitTokens, numeracy, LLM, tokenization, IEEE 754, ICML 2026">
+  <meta property="og:title" content="BitTokens — Efficient numeracy in language models">
+  <meta property="og:description"
+        content="ICML 2026 Spotlight — Single-token IEEE 754 encodings let small LMs learn arithmetic with far fewer tokens than frontier chain-of-thought baselines.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://kreitnerl.github.io/BitTokens/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #0f766e;
+      --accent-hover: #115e59;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --bg-white: #ffffff;
+      --bg-gray: #f8fafc;
+      --border-light: #e5e7eb;
+    }
+
+    body { color: var(--text-dark); }
+
+    .hero {
+      background: linear-gradient(180deg, #f0fdfa 0%, #f8fafc 100%);
+      border-bottom: 1px solid var(--border-light);
+      overflow: visible !important;
+    }
+    .hero .hero-body { padding-top: 2rem; padding-bottom: 0.8rem; overflow: visible !important; }
+    .hero .title.is-1 {
+      color: var(--accent);
+      font-weight: 500;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .hero .publication-authors a { color: #374151 !important; }
+    .hero .publication-authors a:hover { color: var(--accent-hover) !important; text-decoration: underline; }
+    .hero .publication-authors .author-block { margin-right: 0.25rem; display: inline-block; }
+    .hero .publication-authors sup { font-size: 0.7em; }
+    .hero .publication-authors .d-tip {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      outline: none;
+      cursor: help;
+    }
+    .hero .publication-authors .author-name {
+      text-decoration: underline dotted rgba(15, 118, 110, 0.45);
+      text-underline-offset: 0.2em;
+    }
+    .hero .publication-authors .d-tip:focus-visible .author-name {
+      text-decoration-color: rgba(15, 118, 110, 0.9);
+    }
+    .d-matrix-bubble .bubble-who-author { color: #0f766e; }
+    .d-matrix-bubble p + p { margin-top: 0.35rem; }
+    .author-note {
+      margin-top: 0.35rem;
+      color: var(--text-muted);
+      font-size: 0.6rem;
+      font-family: 'Noto Sans', sans-serif;
+    }
+    .author-affiliations {
+      margin-top: 0.35rem;
+      color: #4b5563;
+      font-size: 0.6rem;
+      line-height: 1.3;
+      font-family: 'Noto Sans', sans-serif;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      row-gap: 0.2rem;
+      max-width: 46rem;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+    @media (max-width: 600px) {
+      .author-affiliations {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .publication-links .button {
+      margin: 0.25rem;
+      background: transparent;
+      border: 1px solid #d1d5db;
+      color: #374151;
+    }
+    .publication-links .button.is-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .publication-links .button.is-accent:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+    .publication-links .button:hover {
+      background: #f3f4f6;
+      border-color: #9ca3af;
+      color: #1f2937;
+    }
+
+    h2.section-title,
+    h3.section-title,
+    h4.subsection-title,
+    .title.section-title {
+      color: var(--primary) !important;
+      font-weight: 600;
+      font-family: 'Google Sans', sans-serif;
+      margin-bottom: 1.5rem;
+    }
+
+    h4.subsection-title {
+      font-size: 1.25rem;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .content p, .content li {
+      font-family: 'Noto Sans', sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .section-white { background: var(--bg-white); }
+    .section-gray { background: var(--bg-gray); }
+
+    .insight-box {
+      background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 45%, #fee2e2 100%);
+      border: 1px solid #fecaca;
+      border-left: 5px solid #dc2626;
+      padding: 1.35rem 1.75rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      box-shadow:
+        0 1px 3px rgba(127, 29, 29, 0.08),
+        0 8px 24px -6px rgba(220, 38, 38, 0.15);
+    }
+    .insight-box p {
+      font-family: 'Castoro', Georgia, serif;
+      font-size: 1.1rem;
+      margin: 0;
+      color: #1f2937;
+      line-height: 1.65;
+    }
+    .insight-box .insight-prefix {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      color: #b91c1c;
+      letter-spacing: 0.02em;
+    }
+
+    .figure-container {
+      background: transparent;
+      padding: 1rem 0;
+      margin: 1.5rem 0;
+    }
+    .figure-container img { border-radius: 4px; }
+    .figure-caption {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .result-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-light);
+    }
+    .result-card h4 { color: var(--text-dark); font-weight: 600; margin-bottom: 1rem; }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.75rem 0;
+      align-items: stretch;
+    }
+    @media (max-width: 768px) {
+      .task-grid { grid-template-columns: 1fr; }
+    }
+    .task-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0;
+      background: linear-gradient(165deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%);
+      font-family: 'Noto Sans', sans-serif;
+      font-size: 0.95rem;
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 8px 24px -8px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .task-cell:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 4px 6px -1px rgba(15, 23, 42, 0.06),
+        0 16px 32px -12px rgba(15, 23, 42, 0.12);
+    }
+    /* Pastel groups (non-invasive) */
+    .task-cell.task-group-compare {
+      border-color: #e2e8fc;
+      background: linear-gradient(165deg, #fcfdff 0%, #f4f6ff 50%, #eef2ff 100%);
+    }
+    .task-cell.task-group-compare:hover {
+      border-color: #a5b4fc;
+      box-shadow:
+        0 4px 6px -1px rgba(67, 56, 202, 0.06),
+        0 16px 32px -12px rgba(99, 102, 241, 0.14);
+    }
+    .task-cell.task-group-compare .task-cell-top {
+      background: linear-gradient(180deg, rgba(238, 242, 255, 0.92) 0%, rgba(224, 231, 255, 0.45) 100%);
+      border-bottom-color: rgba(199, 210, 254, 0.65);
+    }
+    .task-cell.task-group-compare .task-icon {
+      background: linear-gradient(145deg, #eef2ff 0%, #e0e7ff 100%);
+      border-color: rgba(129, 140, 248, 0.4);
+    }
+    .task-cell.task-group-basic {
+      border-color: #f3ebe3;
+      background: linear-gradient(165deg, #ffffff 0%, #fefdfb 52%, #faf7f2 100%);
+    }
+    .task-cell.task-group-basic:hover {
+      border-color: #fcd34d;
+      box-shadow:
+        0 4px 6px -1px rgba(180, 83, 9, 0.035),
+        0 16px 32px -12px rgba(245, 158, 11, 0.08);
+    }
+    .task-cell.task-group-basic .task-cell-top {
+      background: linear-gradient(180deg, rgba(255, 253, 250, 0.98) 0%, rgba(254, 252, 248, 0.55) 100%);
+      border-bottom-color: rgba(253, 230, 138, 0.42);
+    }
+    .task-cell.task-group-basic .task-icon {
+      background: linear-gradient(145deg, #fffefb 0%, #fef9ef 100%);
+      border-color: rgba(251, 191, 36, 0.28);
+    }
+    .task-cell.task-group-multistep {
+      border-color: #ddd6fe;
+      background: linear-gradient(165deg, #faf8ff 0%, #f3edff 48%, #ebe4ff 100%);
+    }
+    .task-cell.task-group-multistep:hover {
+      border-color: #a78bfa;
+      box-shadow:
+        0 4px 6px -1px rgba(91, 33, 182, 0.07),
+        0 16px 32px -12px rgba(124, 58, 237, 0.16);
+    }
+    .task-cell.task-group-multistep .task-cell-top {
+      background: linear-gradient(180deg, rgba(237, 233, 254, 0.98) 0%, rgba(221, 214, 254, 0.58) 100%);
+      border-bottom-color: rgba(196, 181, 253, 0.88);
+    }
+    .task-cell.task-group-multistep .task-icon {
+      background: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%);
+      border-color: rgba(139, 92, 246, 0.52);
+    }
+    .task-cell-top {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.75rem;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      background: linear-gradient(180deg, rgba(236, 253, 245, 0.65) 0%, rgba(255, 255, 255, 0.4) 100%);
+    }
+    .task-cell .task-icon {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      line-height: 1;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .task-cell .lbl {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 0.76rem;
+      letter-spacing: 0.015em;
+      line-height: 1.2;
+    }
+    .task-cell .task-example {
+      margin: 0;
+      padding: 0.75rem 1rem 0.95rem;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+      hyphens: auto;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .desiderata-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    @media (max-width: 900px) {
+      .desiderata-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .desiderata-grid { grid-template-columns: 1fr; }
+    }
+    .desiderata-card {
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 1.25rem;
+      background: #fff;
+      border-top: 3px solid var(--accent);
+    }
+    .desiderata-card .d-id {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+    .desiderata-card h5 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0.35rem 0 0.5rem;
+      color: var(--primary);
+    }
+    .desiderata-card p {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .theme-chip {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      margin-top: 0.75rem;
+    }
+    .theme-chip.repr { background: #e0f2fe; color: #0369a1; }
+    .theme-chip.train { background: #fef3c7; color: #b45309; }
+    .theme-chip.arith { background: #d1fae5; color: #047857; }
+
+    .compare-col h4 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+    }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+      font-family: 'Noto Sans', sans-serif;
+      font-size: 0.9rem;
+    }
+    .flow-box {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      max-width: 160px;
+      text-align: center;
+    }
+    .flow-arrow { color: var(--text-muted); font-weight: 700; }
+
+    /* IDE-style code panels (matches site/code.html template; Prism + line numbers) */
+    .code-window {
+      background: #2d2d2d;
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 900px;
+      margin: 1rem auto 1.5rem;
+      border: 1px solid #444;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+    }
+    .code-window .window-header {
+      background: #1f1f1f;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+    .code-window .window-header .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .code-window .window-header .red-dot { background-color: #ff5f56; }
+    .code-window .window-header .yellow-dot { background-color: #ffbd2e; }
+    .code-window .window-header .green-dot { background-color: #27c93f; }
+    .code-window .window-header .code-filename {
+      color: #a8a8a8;
+      margin-left: 10px;
+      font-size: 13px;
+      font-family: 'Google Sans', system-ui, sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .code-window pre[class*="language-"] {
+      margin: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      padding: 18px 20px !important;
+      line-height: 1.6;
+    }
+    .code-window .line-numbers .line-numbers-rows {
+      border-right: 1.5px solid #6c6c6c;
+      padding-right: 8px;
+    }
+    /* Bulma defines .number for pagination; Prism uses .token.number on literals */
+    .code-window span.token.number {
+      align-items: initial !important;
+      background-color: transparent !important;
+      border-radius: 0 !important;
+      display: inline !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      height: auto !important;
+      justify-content: initial !important;
+      margin-right: 0 !important;
+      min-width: 0 !important;
+      padding: 0 !important;
+      text-align: inherit !important;
+      vertical-align: baseline !important;
+    }
+
+    .code-ref {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .bibtex-box {
+      background: #374151;
+      border: 1px solid #4b5563;
+      border-radius: 8px;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .bibtex-box pre { margin: 0; background: transparent; }
+    .bibtex-box code {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #e5e7eb;
+      background: transparent;
+      padding: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .conclusion-box {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 2rem;
+    }
+
+    footer.footer {
+      background: #1f2937;
+      color: #9ca3af;
+      padding: 2rem;
+    }
+    footer a { color: #93c5fd; }
+    footer a:hover { color: #bfdbfe; }
+    .footer-license {
+      margin-top: 1.35rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #9ca3af;
+    }
+    .footer-license .mit-badge {
+      text-decoration: none;
+      vertical-align: middle;
+      margin-right: 0.35rem;
+    }
+    .footer-license .mit-badge-inner {
+      display: inline-block;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 0.22rem 0.42rem 0.2rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #e5e7eb;
+    }
+    .footer-license .mit-badge:hover .mit-badge-inner,
+    .footer-license .mit-badge:focus .mit-badge-inner {
+      background: rgba(147, 197, 253, 0.15);
+      border-color: #93c5fd;
+      color: #f8fafc;
+    }
+    .footer-logo-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+    .footer-logo-row a {
+      display: inline-flex;
+      align-items: center;
+      line-height: 0;
+      text-decoration: none;
+      color: inherit;
+    }
+    .footer-logo-row a:focus-visible {
+      outline: 2px solid #93c5fd;
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+    .footer-logo-row img {
+      height: 44px;
+      width: auto;
+      background: transparent;
+      padding: 0;
+      border: none;
+      object-fit: contain;
+    }
+    .footer-logo-row img.logo-tum-klinikum {
+      height: 80px;
+    }
+    .footer-logo-row img.logo-mcml {
+      height: 25px;
+    }
+
+    .section { padding: 3rem 1.5rem; }
+    img { max-width: 100%; height: auto; }
+    .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+    .motivation-cols .box {
+      height: 100%;
+      border-radius: 8px;
+    }
+
+    details.metric-details {
+      margin: 1rem 0;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      background: #fff;
+    }
+    details.metric-details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .spotlight-ribbon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.45rem 1.25rem;
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 45%, #fde68a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #78350f;
+      letter-spacing: 0.03em;
+    }
+    .spotlight-ribbon .sep { opacity: 0.5; font-weight: 400; }
+
+    details.deep-dive details.metric-details {
+      margin-top: 1rem;
+    }
+    details.deep-dive {
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      background: #fff;
+    }
+    details.deep-dive > summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Google Sans', sans-serif;
+      color: var(--primary);
+      font-size: 1.05rem;
+    }
+    details.deep-dive > summary span.hint {
+      display: block;
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+    .deep-dive h5.tech-sub {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 1.25rem 0 0.75rem;
+    }
+    .deep-dive .content p, .deep-dive .content li {
+      font-size: 0.95rem;
+    }
+
+    /* Desiderata × encoding comparison matrix (BitTokens section) */
+    .desiderata-matrix-wrap {
+      margin: 1.75rem 0 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      overflow: visible;
+    }
+    .desiderata-matrix-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0;
+    }
+    .desiderata-matrix thead {
+      position: relative;
+      z-index: 20;
+    }
+    .desiderata-matrix tbody {
+      position: relative;
+      z-index: 0;
+    }
+    .desiderata-matrix thead th {
+      padding: 0.85rem 0.65rem;
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background-color: #ffffff;
+      background-clip: padding-box;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+    }
+    .desiderata-matrix thead th:first-child {
+      text-align: left;
+      padding-left: 1.1rem;
+      border-radius: 12px 0 0 0;
+    }
+    .desiderata-matrix thead th.col-bt {
+      color: #0f766e;
+      border-bottom-color: #99f6e4;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+    }
+    .desiderata-matrix thead th.col-xval {
+      border-bottom-color: #cbd5e1;
+    }
+    .desiderata-matrix thead th.col-fone {
+      border-bottom-color: #c4b5fd;
+    }
+    .desiderata-matrix tbody tr:nth-child(even) td {
+      background: rgba(248, 250, 252, 0.65);
+    }
+    .desiderata-matrix tbody tr:nth-child(even) th {
+      background: rgba(248, 250, 252, 0.65);
+    }
+    .desiderata-matrix tbody tr:hover td {
+      background: #f1f5f9;
+    }
+    .desiderata-matrix tbody tr:hover th {
+      background: #f1f5f9;
+    }
+    .desiderata-matrix tbody td,
+    .desiderata-matrix tbody th {
+      position: relative;
+      z-index: 0;
+    }
+    .desiderata-matrix tbody td {
+      padding: 0.55rem 0.5rem;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: middle;
+    }
+    .desiderata-matrix tbody td:first-child,
+    .desiderata-matrix tbody th:first-child {
+      padding-left: 1.1rem;
+      font-weight: 500;
+      color: var(--primary);
+      white-space: normal;
+      text-align: left;
+      max-width: 11.5rem;
+      vertical-align: middle;
+    }
+    .desiderata-matrix .d-row-hd {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+    }
+    .desiderata-matrix tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .desiderata-matrix .dn {
+      display: inline-block;
+      min-width: 1.85rem;
+      font-weight: 700;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+    .desiderata-matrix .dname {
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.8rem;
+      line-height: 1.25;
+    }
+    .desiderata-matrix .d-tip {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      outline: none;
+    }
+    .desiderata-matrix .d-tip:focus-visible .d-cell {
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+    }
+    .desiderata-matrix td:not(:first-child) {
+      text-align: center;
+      vertical-align: middle;
+    }
+    .desiderata-matrix .d-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem;
+      min-height: 2.25rem;
+      margin: 0 auto;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      line-height: 1;
+      font-weight: 700;
+      cursor: default;
+    }
+    /* Portal tooltips: class d-matrix-bubble matches when node is under body */
+    .d-matrix-bubble {
+      position: fixed;
+      left: 0;
+      top: 0;
+      min-width: 13.5rem;
+      max-width: min(19rem, calc(100vw - 24px));
+      padding: 0.75rem 0.9rem 0.85rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      font-weight: 400;
+      text-align: left;
+      color: #334155;
+      letter-spacing: 0.01em;
+      background: linear-gradient(165deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      box-shadow:
+        0 4px 6px -1px rgba(15, 23, 42, 0.07),
+        0 18px 38px -12px rgba(15, 23, 42, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.18s ease, visibility 0.18s;
+      z-index: 10050;
+      transform: none;
+      box-sizing: border-box;
+    }
+    .d-matrix-bubble.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .d-matrix-bubble .bubble-who {
+      display: block;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.45rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .d-matrix-bubble .bubble-who-xval { color: #475569; }
+    .d-matrix-bubble .bubble-who-fone { color: #5b21b6; }
+    .d-matrix-bubble .bubble-who-bt { color: #0f766e; }
+    .d-matrix-bubble p {
+      margin: 0;
+      font-family: 'Noto Sans', sans-serif;
+      color: #475569;
+    }
+    .d-matrix-bubble code {
+      font-size: 0.9em;
+      background: rgba(15, 118, 110, 0.08);
+      color: #115e59;
+      padding: 0.05rem 0.25rem;
+      border-radius: 4px;
+    }
+    .desiderata-matrix .d-cell.ok {
+      color: #047857;
+      background: #d1fae5;
+    }
+    .desiderata-matrix .d-cell.no {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+    .desiderata-matrix .d-cell.partial {
+      color: #b45309;
+      background: #fef3c7;
+      font-size: 1.15rem;
+    }
+    .desiderata-matrix-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1.25rem;
+      margin: 0;
+      padding: 0.65rem 1.1rem 0.85rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      border-top: 1px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .desiderata-matrix-legend .lg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .desiderata-matrix-legend .mini {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .desiderata-matrix-legend .mini.ok { color: #047857; background: #d1fae5; }
+    .desiderata-matrix-legend .mini.no { color: #b91c1c; background: #fee2e2; }
+    .desiderata-matrix-legend .mini.partial { color: #b45309; background: #fef3c7; }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-widescreen">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <div class="spotlight-ribbon">
+            <span>Forty-third International Conference on Machine Learning</span>
+            <span class="sep">·</span>
+            <span>ICML 2026</span>
+            <span class="sep">·</span>
+            <span style="color:#b45309;">Spotlight paper</span>
+          </div>
+          <h1 class="title is-2 publication-title">Efficient numeracy in language models<br>through single-token number embeddings</h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Linus Kreitner<sup>1,2,*</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Linus Kreitner</span>
+                  <p><strong>Affiliations:</strong> Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM), Germany; TUM University Hospital, Munich, Germany</p>
+                  <p><strong>Role:</strong> First author (shared equal contribution)</p>
+                  <p><strong>Email:</strong> linus.kreitner[at]tum.de</p>
+                  <p><strong>GitHub:</strong> <a href="https://github.com/KreitnerL" target="_blank" rel="noopener">github.com/KreitnerL</a></p>
+                  <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/linus-kreitner-596014186/" target="_blank" rel="noopener">linkedin.com/in/linus-kreitner-596014186</a></p>
+                  <p><strong>ORCID:</strong> <a href="https://orcid.org/0009-0004-5727-6697" target="_blank" rel="noopener">0009-0004-5727-6697</a></p>
+                  <p><strong>Scholar:</strong> <a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank" rel="noopener">scholar.google.com/citations?user=huPvQJIAAAAJ</a></p>
+                </div>
+              </span>,
+            </span>
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Paul Hager<sup>1,*</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Paul Hager</span>
+                  <p><strong>Affiliation:</strong> Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM), Germany</p>
+                  <p><strong>Role:</strong> First author (shared equal contribution)</p>
+                  <p><strong>Email:</strong> paul.hager[at]tum.de</p>
+                  <p><strong>GitHub:</strong> <a href="https://github.com/paulhager" target="_blank" rel="noopener">github.com/paulhager</a></p>
+                  <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/paul-hager-b0b73280/" target="_blank" rel="noopener">linkedin.com/in/paul-hager-b0b73280</a></p>
+                  <p><strong>ORCID:</strong> <a href="https://orcid.org/0000-0003-2166-0262" target="_blank" rel="noopener">0000-0003-2166-0262</a></p>
+                  <p><strong>Scholar:</strong> <a href="https://scholar.google.com/citations?user=ESLUtGAAAAAJ" target="_blank" rel="noopener">scholar.google.com/citations?user=ESLUtGAAAAAJ</a></p>
+                </div>
+              </span>,
+            </span>
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Jonathan Mengedoht<sup>3</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Jonathan Mengedoht</span>
+                  <p><strong>Affiliation:</strong> Technical University of Munich (TUM), Germany</p>
+                  <p><strong>GitHub:</strong> <a href="https://github.com/jonathangpk" target="_blank" rel="noopener">github.com/jonathangpk</a></p>
+                  <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/jonathanmengedoht/" target="_blank" rel="noopener">linkedin.com/in/jonathanmengedoht</a></p>
+                </div>
+              </span>,
+            </span>
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Georgios Kaissis<sup>1</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Georgios Kaissis</span>
+                  <p><strong>Affiliation:</strong> Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM), Germany</p>
+                  <p><strong>GitHub:</strong> <a href="https://github.com/gkaissis" target="_blank" rel="noopener">github.com/gkaissis</a></p>
+                  <p><strong>ORCID:</strong> <a href="https://orcid.org/0000-0001-8382-8062" target="_blank" rel="noopener">0000-0001-8382-8062</a></p>
+                  <p><strong>Scholar:</strong> <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ" target="_blank" rel="noopener">scholar.google.com/citations?user=g-WdmSgAAAAJ</a></p>
+                </div>
+              </span>,
+            </span>
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Daniel Rueckert<sup>1,4,5</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Daniel Rueckert</span>
+                  <p><strong>Affiliations:</strong> Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM), Germany; Department of Computing, Imperial College London, UK; Munich Center for Machine Learning (MCML), Munich, Germany</p>
+                  <p><strong>Email:</strong> daniel.rueckert[at]tum.de</p>
+                  <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/daniel-rueckert-3502a71/" target="_blank" rel="noopener">linkedin.com/in/daniel-rueckert-3502a71</a></p>
+                  <p><strong>ORCID:</strong> <a href="https://orcid.org/0000-0002-5683-5889" target="_blank" rel="noopener">0000-0002-5683-5889</a></p>
+                  <p><strong>Scholar:</strong> <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ" target="_blank" rel="noopener">scholar.google.com/citations?user=H0O0WnQAAAAJ</a></p>
+                </div>
+              </span>,
+            </span>
+            <span class="author-block">
+              <span class="d-tip" tabindex="0">
+                <span class="author-name">Martin J. Menten<sup>1,5</sup></span>
+                <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                  <span class="bubble-who bubble-who-author">Martin J. Menten</span>
+                  <p><strong>Affiliations:</strong> Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM), Germany; Munich Center for Machine Learning (MCML), Munich, Germany</p>
+                  <p><strong>Email:</strong> martin.menten[at]tum.de</p>
+                  <p><strong>GitHub:</strong> <a href="https://github.com/martinmenten" target="_blank" rel="noopener">github.com/martinmenten</a></p>
+                  <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/martinmenten/" target="_blank" rel="noopener">linkedin.com/in/martinmenten</a></p>
+                  <p><strong>ORCID:</strong> <a href="https://orcid.org/0000-0001-8261-7810" target="_blank" rel="noopener">0000-0001-8261-7810</a></p>
+                  <p><strong>Scholar:</strong> <a href="https://scholar.google.com/citations?user=FSlGL2oAAAAJ" target="_blank" rel="noopener">scholar.google.com/citations?user=FSlGL2oAAAAJ</a></p>
+                </div>
+              </span>
+            </span>
+            <div class="author-affiliations">
+              <div><sup>*</sup>Equal contribution (first authors)</div>
+              <div><sup>1</sup>Chair for AI in Healthcare and Medicine, Technical University of Munich (TUM)</div>
+              <div><sup>2</sup>TUM University Hospital, Munich, Germany</div>
+              <div><sup>3</sup>Technical University of Munich (TUM), Germany</div>
+              <div><sup>4</sup>Department of Computing, Imperial College London, UK</div>
+              <div><sup>5</sup>Munich Center for Machine Learning (MCML), Munich, Germany</div>
+            </div>
+          </div>
+
+          <div class="has-text-centered" style="margin-top: 1rem;">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2510.06824"
+                   class="external-link button is-normal is-rounded" target="_blank" rel="noopener">
+                  <span class="icon"><img src="./static/images/arxiv-logomark-small.svg" alt="" style="width: 1em; height: 1em; vertical-align: middle;"></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://openreview.net/forum?id=Bh4Ubk80M8"
+                   class="external-link button is-normal is-rounded" target="_blank" rel="noopener">
+                  <span class="icon"><i class="fas fa-file-alt"></i></span>
+                  <span>OpenReview</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://github.com/KreitnerL/BitTokens"
+                   class="external-link button is-normal is-rounded is-accent" target="_blank" rel="noopener">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; text-align: justify;">
+            <p style="font-family: 'Castoro', Georgia, serif; font-size: 1.05rem; color: #374151; max-width: 52rem; margin: 0 auto;">
+              <strong>TL;DR</strong> Frontier LLMs often spend thousands of tokens reasoning through basic arithmetic.
+              Ordinary tokenizers split numbers into many pieces.
+              We propose <strong>BitTokens</strong>, a novel tokenization strategy for LLMs that embeds numbers using their IEEE 754 binary floating-point representation, which allows for efficient numeracy in language models.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Teaser -->
+<section class="section section-white" style="padding-top: 0.5rem;">
+  <div class="container is-max-desktop">
+    <div class="figure-container" style="margin: 0;">
+      <figure class="has-text-centered">
+        <img src="./static/images/bittokens/fig1-overview.svg"
+             alt="Comparison of long reasoning chains and many numeric sub-tokens versus BitTokens single-token encoding"
+             style="max-width: 100%;">
+      </figure>
+      <p class="figure-caption">
+        <strong>Figure 1.</strong> LLMs perform poorly on arithmetic tasks, requiring excessive reasoning tokens to achieve good performance. Our BitTokens tokenization strategy allows language models to solve arithmetic tasks both effectively and efficiently.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Motivation -->
+<section class="section section-gray" id="motivation">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Motivation</h2>
+    <div class="content has-text-justified">
+      <p>
+        Many researchers share the common vision that large language models (LLMs) will not only alleviate routine work but also <strong>drive scientific and technological innovation</strong>.
+        In many fields, such as physics and engineering, solving such complex tasks <strong>requires the processing of large amounts of numerical data and extensive calculations</strong>.
+        Thus, to aid advancements in these fields, LLMs must possess efficient and effective <strong>numeracy</strong>, defined as the ability to represent and compute numbers.
+      </p>
+      <p>
+        Research to improve the numeracy of LLMs has predominantly focused on two strategies:
+
+        <details class="metric-details">
+          <summary>1. Arithmetic tool use</summary>
+          <div class="content" style="margin-top: 1rem;">
+            Tool-augmented LLMs leverage external calculators or code to bypass the need for internal arithmetic computation.
+            However, it forces the model to dynamically and correctly identify, construct, and wait on all mathematical operations, introducing non-negligible latency and sources of error.
+            Furthermore, outsourcing all calculations prevents the model from generating and calculating with intermediate numeric representations during a forward pass, restricting the efficiency of latent calculations.
+          </div>
+        </details>
+
+        <details class="metric-details">
+          <summary>2. Reasoning chains</summary>
+          <div class="content" style="margin-top: 1rem;">
+            Reasoning chains, on the other hand, prompt LLMs to generate logically consistent text, step-by-step, enabling them to solve complex problems by breaking them into smaller parts.
+            However, reasoning chains can be very inefficient, sometimes requiring tens of thousands of tokens to solve a single calculation, as illustrated in Figure 1 and shown later.
+            This limits the length and complexity of problems that LLMs can solve due to context window and cost constraints.
+          </div>
+        </details>
+
+        </p>
+      <p>
+        We argue that both tooling and reasoning chains are merely crutches, allowing LLMs to solve arithmetic calculations but preventing them from obtaining the intrinsic numeric computation skills required to efficiently solve complex tasks in advanced technical domains.
+        We hypothesize that addressing this problem requires rethinking the way LLMs tokenize and encode numbers.
+      </p>
+    </div>
+
+
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 1:</strong>
+        External tools and long reasoning are partial fixes: they do not give the model an intrinsic, efficient numeric representation for latent computation and long numeric-heavy contexts.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Motivation -->
+<section class="section section-white" id="contributions">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Contributions</h2>
+    <div class="content has-text-justified">
+      <p>In our work, we answer the following questions:</p>
+
+      <div class="columns motivation-cols is-variable is-6" style="margin-top: 1rem;">
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid #94a3b8;">
+            <p class="is-size-5 has-text-weight-bold" style="color: #64748b;">How do frontier LLMs perform on arithmetic tasks?</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid #f59e0b;">
+            <p class="is-size-5 has-text-weight-bold" style="color: #b45309;">What attributes should a single-token number encoding have?</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid var(--accent);">
+            <p class="is-size-5 has-text-weight-bold" style="color: var(--accent);">How do we build a better single-token number encoding?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Frontier benchmark -->
+<section class="section section-gray" id="frontier">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Evaluation of numeracy in frontier LLMs</h2>
+
+    <h4 class="subsection-title">What we tested</h4>
+    <div class="content has-text-justified">
+      <p>
+        Popular math benchmarks often mix language understanding with computation.
+        We built a controlled benchmark that isolates <strong>numeric skill</strong>: comparisons and ordering, core arithmetic, and short multi-step statistics, under diverse magnitudes and precisions aligned with float64 reality.
+      </p>
+    </div>
+
+    <div class="task-grid" aria-label="Nine benchmark tasks">
+      <div class="task-cell task-group-compare">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">↕️</span><span class="lbl">Minimum / maximum of a list</span></div>
+        <p class="task-example">What is the minimum of the list [1566.28, 1571.08, 2329.9, 1190.28, 878.242]?</p>
+      </div>
+      <div class="task-cell task-group-compare">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">📍</span><span class="lbl">Interval membership</span></div>
+        <p class="task-example">What interval does x=57.667 belong to? A: x &lt; 13.626, B: 13.626 &lt;= x &lt; 26.239, C: 26.239 &lt;= x &lt; 29.012, D: 29.012 &lt;= x</p>
+      </div>
+      <div class="task-cell task-group-compare">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">🔢</span><span class="lbl">List sorting (asc / desc)</span></div>
+        <p class="task-example">Sort the list [6539.243, 2263.345, 14708.01, 15953.11] in ascending order.</p>
+      </div>
+      <div class="task-cell task-group-basic">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">➕</span><span class="lbl">Addition and subtraction</span></div>
+        <p class="task-example">What is 9.6 − 77.96?</p>
+      </div>
+      <div class="task-cell task-group-basic">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">✖️</span><span class="lbl">Multiplication</span></div>
+        <p class="task-example">What is −56.228 × 37,485,561?</p>
+      </div>
+      <div class="task-cell task-group-basic">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">➗</span><span class="lbl">Division</span></div>
+        <p class="task-example">What is 0.04561093096763438 ÷ −0.00563?</p>
+      </div>
+      <div class="task-cell task-group-multistep">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">📈</span><span class="lbl">Exponentiation</span></div>
+        <p class="task-example">What is 0.548309577<sup>−7</sup>?</p>
+      </div>
+      <div class="task-cell task-group-multistep">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">Σ</span><span class="lbl">Mean of a list</span></div>
+        <p class="task-example">What is the mean of the list [−54733, −4216.9, 38145, 20819]?</p>
+      </div>
+      <div class="task-cell task-group-multistep">
+        <div class="task-cell-top"><span class="task-icon" aria-hidden="true">σ</span><span class="lbl">Standard deviation of a list</span></div>
+        <p class="task-example">What is the std of the list [−26975.4, 86144.6, −51820.1, −7862.07]?</p>
+      </div>
+    </div>
+
+    <p class="is-size-7 has-text-centered" style="color: var(--text-muted);">
+      We design our tasks to isolate individual aspects of numeracy as well as core mathematical operations. Numbers contain at most 15 significant decimal digits.
+      Number magnitudes, differences between numbers, and precision are all densely and uniformly sampled.
+    </p>
+
+    <h4 class="subsection-title">Metric: log-sMAPE</h4>
+    <div class="content has-text-justified">
+      <p>
+        We report exact match where appropriate, and for continuous predictions we use a scaled logarithmic view of symmetric mean absolute percentage error $\mathrm{sMAPE}(\hat y, y) = \dfrac{\lvert \hat y - y\rvert}{\lvert y\rvert + \lvert \hat y\rvert + \varepsilon}$, so that errors in later significant digits are visible:
+      </p>
+    </div>
+
+    <div class="result-card">
+      <div class="has-text-centered" style="margin: 1rem 0;">
+        $\mathrm{log\text{-}sMAPE}(\hat y, y) = \min\left(1,\; \dfrac{\log_{10}\left(\mathrm{sMAPE}(\hat y, y)+\varepsilon\right)}{-M} \right)$
+      </div>
+    </div>
+    <p >with $\varepsilon=10^{-100}$ for stability. Here $M=15$ denotes the maximum number of significant digits tested.</p>
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 2:</strong>
+        Think of log-sMAPE as summarizing how many of the 15 significant digits are trustworthy before the first mistake.
+      </p>
+    </div>
+
+    <h4 class="subsection-title">What we found</h4>
+
+    <div class="figure-container" style="margin: 0;">
+      <figure class="has-text-centered">
+        <img src="./static/images/bittokens/radar-models.svg"
+             alt="Radar chart of frontier models on numeracy tasks"
+             style="max-width: 100%;">
+      </figure>
+      <p class="figure-caption">
+        <strong>Figure 2.</strong> While simple tasks such as addition and ordering are almost perfectly solved by frontier LLMs, other tasks such as multiplication, division, calculating the standard deviation, or exponentiation remain difficult and require extensive reasoning tokens to solve.
+      </p>
+    </div>
+    <div class="figure-container" style="margin: 0;">
+      <figure class="has-text-centered">
+        <img src="./static/images/bittokens/tokens-performance.svg"
+             alt="Radar chart of frontier models on numeracy tasks"
+             style="max-width: 100%;">
+      </figure>
+      <p class="figure-caption">
+        <strong>Figure 3.</strong> Difficult numeracy tasks such as multiplication, division, exponentiation, and standard deviation can only be solved by frontier models using excessive reasoning tokens.
+      </p>
+    </div>
+
+    <p>Immediately apparent is the perfect accuracy of almost all models on the basic number comparison tasks of MinMax, Sorting, and Interval, which are effectively solved. 
+    When considering the basic arithmetic tasks, there is a clear separation between high reasoning and non- or minimal-reasoning models.
+    While both perform excellently on addition and mean calculation, all non-reasoning models perform very poorly on multiplication, division, exponentiation, and standard deviation tasks, with none achieving above 60% $\mathrm{log\textnormal{-}sMAPE}$.
+    Only once we allow a large number of reasoning tokens do we see improved performance on these tasks.
+    This separation between thinking and non-thinking models is underscored in <strong>Figure 3</strong>.
+    LLMs use between 5 and 30 thousand tokens to solve a single calculation.
+    While future advances in post-training could reduce the number of reasoning tokens, it is clear that current LLMs rely heavily on reasoning chains to compensate for their poor native arithmetic performance.
+    </p>
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 3:</strong>
+        Current LLMs rely heavily on reasoning chains to compensate for their poor native arithmetic performance.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Desiderata -->
+<section class="section section-white" id="desiderata">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Desiderata for single-token number encodings</h2>
+
+    <p>Our goal is to develop a number encoding strategy that generates representations which both maximize token efficiency and allow for neural networks to learn algorithms that perfectly execute numeric calculations.</p>
+
+    <div class="desiderata-grid">
+      <div class="desiderata-card">
+        <!-- <span class="d-id">D1 - Token efficiency</span> -->
+        <h5 style="color: var(--accent) !important;">D1 - Token efficiency</h5>
+        <p>Every number is represented by a single token.</p>
+        <span class="theme-chip repr">representation</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D2 - Uniqueness</h5>
+        <p>Each value has exactly one valid encoding, with a unique inverse mapping.</p>
+        <span class="theme-chip repr">representation</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D3 - Structured</h5>
+        <p>The encoding geometry reflects numeric order and distance, facilitating generalizable algorithms.</p>
+        <span class="theme-chip repr">representation</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D4 - Scale invariance</h5>
+        <p>The desired range of input magnitudes and precisions can be represented.</p>
+        <span class="theme-chip repr">representation</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D5 - Normalization</h5>
+        <p>Encodings are bounded and information preserving under standard normalization functions used in language models (e.g., LayerNorm, RMSNorm).</p>
+        <span class="theme-chip train">training</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D6 - Numerical stability</h5>
+        <p>Representations remain accurate when using low-precision activations (e.g., FP8).</p>
+        <span class="theme-chip train">training</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D7 - Continuity</h5>
+        <p> Encodings vary smoothly with the underlying value, making them compatible with gradient-based optimization.</p>
+        <span class="theme-chip train">training</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D8 - Robustness</h5>
+        <p>Values can be decoded reliably under stochastic noise, allowing for stochastic training.</p>
+        <span class="theme-chip train">training</span>
+      </div>
+      <div class="desiderata-card">
+        <h5 style="color: var(--accent) !important;">D9 - Arithmetic</h5>
+        <p>Encodings admit learnable algorithms for core mathematical operations.</p>
+        <span class="theme-chip arith">arithmetic</span>
+      </div>
+    </div>
+
+    <h4 class="subsection-title">Limitations of existing single-token designs</h4>
+    <div class="columns">
+      <div class="column compare-col">
+        <div class="box" style="height: 100%;">
+          <h4>xVal</h4>
+          <p class="is-size-7">
+            Learns a numeric token scaled by value—conceptually simple and injective on reasonable ranges.
+            To survive normalization, magnitudes are squeezed (e.g., toward a narrow band), which limits representable range and precision (<strong>D4</strong>, <strong>D6</strong>) and ultimately arithmetic flexibility (<strong>D9</strong>).
+          </p>
+        </div>
+      </div>
+      <div class="column compare-col">
+        <div class="box" style="height: 100%;">
+          <h4>FoNE (sinusoidal)</h4>
+          <p class="is-size-7">
+            Fourier-style embeddings behave well on several geometric and robustness criteria.
+            Addition maps to a simple operation in frequency space; <strong>multiplication</strong>, however, does not admit a cheap local operator. Networks need to decode → multiply → re-encode (<strong>D9</strong> bottleneck).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <details class="metric-details">
+      <summary>
+        Technical deep dive
+      </summary>
+      <div class="deep-dive content has-text-justified" style="margin-top: 1rem;">
+
+        <h6>xVal (continuous scaled token)</h6>
+        <p>
+          xVal attaches a trainable <code>[NUM]</code> embedding and <strong>multiplies</strong> it by the scalar being encoded.
+          When the model emits a number token, a dedicated head reads the continuous value from hidden states.
+          That design is injective and smooth enough to satisfy <strong>D1</strong>, <strong>D3</strong>, <strong>D2</strong>, and <strong>D7</strong>. However, as shown by the authors, this strategy must map all inputs to the range [-5, 5] to satisfy <strong>D5</strong> and avoid layer normalization interfering with the information encoded in the encoding magnitude.
+          This causes it to be extremely limited in the range and precision of numbers it can encode, thus violating <strong>D4</strong>, <strong>D6</strong>, and by extension <strong>D9</strong>.
+        </p>
+
+        <h6>FoNE (sinusoidal features on a $\Phi$-dimensional torus)</h6>
+        <p>
+          FoNE builds a vector of <strong>sines and cosines</strong> at multiple base-10 frequencies (covering integer and fractional digit positions), then adds this to a learned <code>[NUM]</code> token.
+
+          <div class="result-card">
+            <div >
+              <h6>Definition (sinusoidal encoding)</h6>
+              <p>
+              A sinusoidal encoding $\mathcal F:\mathbb R\mapsto \mathbb T^{|\Phi|}$ maps real numbers to a $|\Phi|$-dimensional torus, which forms a compact abelian Lie group. Given frequencies $b^\phi$ with base $b>1$ and $\phi\in\Phi\subset\mathbb Z$, then $\mathcal F$ is defined as:
+              </p>
+              <div class="has-text-centered" style="margin: 1rem 0;">
+                  $\mathcal F(x):=\left[\cos(2\pi b^\phi x),\, \sin(2\pi b^\phi x)\right]_{\phi \in \Phi}
+              = \left[e^{i2\pi b^\phi x}\right]_{\phi\in\Phi}
+              $
+              </div>
+            </div>
+          </div>
+
+          When a language model predicts a number token, the final hidden state can directly be interpreted as a sinusoidal encoding.
+          The output number is predicted digit by digit through the maximum cosine similarity between each dimension of the final hidden state (corresponding to each digit of the output) with those of the encodings of the numbers in the range $[0, 9]$.
+          This fulfills <strong>D1</strong>, <strong>D4</strong>, <strong>D3</strong>, <strong>D2</strong>, <strong>D5</strong>, <strong>D6</strong>, <strong>D7</strong>, <strong>D8</strong>.
+          In contrast to simply scaling a <code>[NUM]</code> token, using both sine and cosine functions equally guarantees a constant RMS norm, satisfying <strong>D5</strong>. 
+          Such a digit-wise maximum similarity decoding also allows for robustness to noise, satisfying <strong>D8</strong>.
+
+          The key limitation of sinusoidal encodings is that they are poorly suited for solving certain arithmetic operations with neural networks, most notably multiplication.
+          In order to satisfy condition <strong>D9</strong>, we require a learnable mapping $o'$ that computes the encoding, $\xi$, of the result of an operation $o$ from the encodings of its operands:
+          <div class="has-text-centered" style="margin: 1rem 0;">
+              $\forall_{o}\ \exists_{o'}:\ \xi\big( o(x_1, \ldots, x_n) \big) \;=\; o'\big( \xi(x_1), \ldots, \xi(x_n) \big)$
+          </div>
+        </p>
+
+        <h5>Why addition is easy in Fourier feature space</h5>
+        <p>The encoding of the sum of two numbers $x_1$ and $x_2$ can be computed by a simple component-wise multiplication of their respective encodings.</p>
+
+        <details class="metric-details">
+          <summary>Lemma (additive homomorphism)</summary>
+          <div class="content" style="margin-top: 1rem;">
+            <p>
+              The encoding map $\mathcal F$  is a group homomorphism from the additive group of real numbers $(\mathbb R, +)$ to the multiplicative torus $(\mathbb T^{|\Phi|}, \odot)$, where $\odot$ denotes the element-wise (Hadamard) product.
+              <br><br>
+              <i>Proof.</i> 
+              The claim follows directly from Euler's formula:
+              </p>
+              <div class="has-text-centered" style="margin: 1rem 0;">
+                $\mathcal F(x_1+x_2)= \left[ e^{i2\pi b^\phi (x_1+x_2)} \right]_{\phi\in\Phi} = \left[ e^{i2\pi b^\phi x_1} e^{i2\pi b^\phi x_2} \right]_{\phi\in\Phi} = \mathcal F(x_1) \odot \mathcal F(x_2)$
+              </div>
+              <div class="has-text-right">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square"><path d="M3 3v18h18V3z"></path></svg>
+              </div>
+          </div>
+        </details>
+
+        <p>
+          This homomorphism elegantly transforms addition in the number domain into a simple, local operation in the encoded domain. Notably, this operation does not require carry-over logic. However, for multiplication such a simple mapping does not exist.
+        </p>
+
+        <h5>Why multiplication is hard in Fourier feature space</h5>
+        <details class="metric-details">
+          <summary>Proposition (complexity of multiplication)</summary>
+          <div class="content" style="margin-top: 1rem;">
+            <p>
+              Let $\mathcal X:=\{\varepsilon,\dots,U\}$ be the set of input numbers with resolution $\varepsilon=b^{m}$ and choose $\Phi = \{m,\dots,n\}$ so that $\mathcal F$ uniquely encodes the entire number range. Assume each encoding component has a finite precision $P$ (i.e., can represent $P$ distinct states). Suppose there exists an operator $\otimes_\phi:\mathbb T^{|\Phi|}\times\mathbb T^{|\Phi|}\mapsto\mathbb T$ such that $\otimes_\phi(\mathcal F(x),\mathcal F(y)) := \mathcal F_\phi(xy)$ for each output frequency $\phi\in\Phi$. Let $S_\phi^x,S_\phi^y\subseteq\Phi$ be the subsets of input frequencies that $\otimes_\phi$ is required to take as input from $\mathcal F(x)$ and $\mathcal F(y)$, respectively. Then:
+              <ul>
+                <li><strong>Non-locality.</strong> The operator $\otimes_\phi$ must access at least $d = \mathcal O\left(\log_P(U/\varepsilon)\right)$ components from each input vector with $|S_\phi^x|,\;|S_\phi^y|\;\ge\;\left\lceil \log_P |\mathcal X| \right\rceil$.</li>
+                <li><strong>Computational complexity.</strong> The operator $\otimes$ must perform a computation functionally equivalent to polynomial multiplication.</li>
+              </ul>
+            <i>Proof.</i>
+            </p>
+            <p>
+            <strong>1. Non-locality.</strong> The proof follows from a counting argument. Assume for contradiction that $|S_\phi^x|<\log_P|\mathcal X|$. Then the projection of $\mathcal{F}(x)|_{S_\phi^x}$, which is the only information about $x$ available to $\otimes_\phi$, can represent at most $P^{|S_\phi^x|}$ states. By the pigeonhole principle, there exist $x_1, x_2 \in \mathcal{X}$ with $x_1 \neq x_2$ that are indistinguishable to the operator, i.e., $\mathcal{F}(x_1)|_{S_\phi^x} = \mathcal{F}(x_2)|_{S_\phi^x}$. Let $\Delta:=x_1-x_2\neq 0$. The set $Y^*:=\{y\in \mathcal X:\; b^\phi \Delta y\in\mathbb Z\}$ is a proper subset of $\mathcal X$, so we can pick $y^\star\in\mathcal X \setminus Y^*$. Then $\mathcal F_\phi(x_1 y^\star)\neq \mathcal F_\phi(x_2 y^\star)$, yet $\otimes_\phi$ sees identical inputs from $\mathcal F(x_1)$ and $\mathcal F(x_2)$, which is a contradiction. The operator $\otimes_\phi$ is required by its definition to produce these two different outputs. However, since its inputs for $x_1$ and $x_2$ are identical ($\mathcal{F}(x_1)|_{S_\phi^x} = \mathcal{F}(x_2)|_{S_\phi^x}$), it is forced as a function to produce the same output for both. It cannot satisfy both conditions. Thus, the initial assumption must be false and $|S_\phi^x|\ge\lceil\log_P|\mathcal X|\rceil$. The same holds for $|S_\phi^y|$.
+            </p>
+            
+            <p>
+            <strong>2. Computational complexity.</strong> 
+            Multiplication in any positional system is equivalent to the discrete convolution of the coefficients $k$ and $l$, followed by carry propagation.<br>
+
+            Write $x=\sum_{i} k_i b^i$ and $y=\sum_{j} l_j b^j$ as the sum of their coefficients. Then
+            <div class="has-text-centered" style="margin: 1rem 0;">
+            $xy=\sum_{\tau}(k*l)_\tau b^\tau, \quad
+            (k*l)_\tau=\sum_{i+j=\tau}k_i l_j.$
+            </div>
+
+            Interpreting the circular sinusoidal component in its interval $[0,1)$ wrap-around form,
+            we can view the phase vector of the encoding, $\Theta_x \in [0, 1)^{|\Phi|}$, as a linear transformation of the coefficient vector $k$ modulo 1. From the definition of the encoding, the component at frequency $\phi$ accumulates contributions from lower-order coefficients:
+            <div class="has-text-centered" style="margin: 1rem 0;">
+                $[\Theta_x]_\phi = \big( \sum_{i < \phi} k_i b^{i-\phi} \big) \bmod 1.$
+            </div>
+            This forms a linear system $\Theta_x \equiv Mk \bmod 1$, where $M$ is a lower-triangular mixing matrix with entries $M_{\phi,i} = b^{i-\phi}$ for $i < \phi$ and $0$ otherwise. Since the encoding uniquely represents the number range, $M$ is invertible over the domain.<br>
+
+
+            To compute the encoding $\mathcal{F}(xy)$ of the product, the operator must produce the phase vector $\Theta_{xy} \equiv M(k * l) \bmod 1$. We analyze two pathways for this from inputs $\Theta_x$ and $\Theta_y$:<br><br>
+
+            <em>Pathway A: Disentangle First.</em>
+            One effectively inverts the mixing matrix to recover coefficients: $k = M^{-1}\Theta_x$ and $l = M^{-1}\Theta_y$. The product is then computed as $\Theta_{xy} = M(M^{-1}\Theta_x * M^{-1}\Theta_y)$. The operation $M^{-1}$ represents the full cost of decoding the sinusoidal representation into positional digits.<br><br>
+
+            <em>Pathway B: Disentangle Later.</em>
+            Alternatively, one might attempt to compute the result directly from the entangled phases. Any bilinear operation on the inputs can be expressed via the Kronecker product $\Theta_x \otimes_K \Theta_y$. Substituting the linear forms yields:
+            <div class="has-text-centered" style="margin: 1rem 0;">
+                $\Theta_x \otimes_K \Theta_y = (Mk) \otimes_K (Ml) = (M \otimes_K M)(k \otimes_K l).$
+            </div>
+            The vector $k \otimes_K l$ contains all cross-terms $k_i l_j$. To construct the convolution $h$, one must sum all subsets of these cross-terms where $i+j=\tau$. However, the term $\Theta_x \otimes_K \Theta_y$ does not provide direct access to $k_i l_j$, only linear combinations weighted by the expanded mixing matrix $M \otimes_K M$. <br>
+
+            Isolating the necessary convolution terms from the bilinear expansion requires inverting this mixing process. 
+            This removal $(M \otimes_K M)^{-1} = M^{-1} \otimes_K M^{-1}$ of the cross-term redundancies is therefore computationally at least as expensive as the initial decoding $M^{-1}$.
+            Moreover, under finite precision, the condition number satisfies $\kappa(M \otimes_K M)=\kappa(M)^2$ with $\kappa(M)\ge1$, which means that postponing disentanglement amplifies quantization errors.<br>
+
+            Since both pathways require inverting the linear mixing $M$, there exists no shortcut in the sinusoidal domain.
+            Any correct operator $\otimes$ must inherently learn the multi-stage procedure: (1) a non-local decoding of the sinusoidal inputs into internal coefficient sequences for $x$ and $y$, (2) a convolution of these sequences, followed by (3) a carry propagation step, and finally (4) a re-encoding of the result into the sinusoidal format.
+            <div class="has-text-right">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square"><path d="M3 3v18h18V3z"></path></svg>
+            </div>
+            </p>
+            
+          </div>
+        </details>
+
+        <p>
+          The preceding proposition demonstrates that performing multiplication in sinusoidal encoding space requires a transformation that is both computationally intensive and prone to precision errors. Any network implementing such an operation is forced to first decode, then calculate, and finally re-encode the encoding. This leads us to conclude that sinusoidal encodings alone are not well-suited as a general-purpose number representation. 
+        </p>
+
+        <details class="metric-details">
+          <summary>Why not encode $\ln x$ to turn multiplication into addition?</summary>
+          <div class="content" style="margin-top: 1rem;">
+            <p>
+              In log space, $\ln(x_1 x_2) = \ln x_1 + \ln x_2$, so multiplication becomes another additive homomorphism—at the price that <strong>addition</strong> is no longer local (classic log-number-system trade-off).
+              Recovering $\mathcal{F}_{\log}(x_1 + x_2)$ from $\mathcal{F}_{\log}(x_1)$ and $\mathcal{F}_{\log}(x_2)$ needs something like exp–sum–log, reintroducing the same mixing difficulties (see paper discussion).
+            </p>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 4:</strong>
+        No prior single-token recipe simultaneously satisfies engineering constraints and supports learning general and robust arithmetic algorithms.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- BitTokens -->
+<section class="section section-gray" id="bittokens">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">The solution: BitTokens</h2>
+
+    <div class="content has-text-justified">
+      <p>Guided by the desiderata introduced in the previous section, we propose BitTokens, a novel numeric encoding algorithm. 
+      BitTokens uses a dedicated, learnable <code>[NUM]</code> token to which a numeric encoding is added that is based on the IEEE 754 double-precision binary floating-point format (i.e., <code>float64</code>).
+      The floating-point format writes a signed real value $v$ as
+      <div class="has-text-centered" style="margin: 1rem 0;">
+      $v = (-1)^{s} \big( 1+\sum_{i=1}^{52}{b_{52-i}2^{-i}} \big) \times 2^{E-1023},$
+      </div>
+      with $s \in \{0,1\}$ denoting the sign bit, $E \in \{0,\dots,2047\}$ the 11-bit exponent field offset by $1023$, and $b_j \in \{0,1\}$ for $j=0,\dots,51$ the 52 significand bits.
+      </p>
+      <p>
+      Each IEEE dimension becomes one coordinate in the additive encoding (64 bits for <code>float64</code>), covering full range and specials ($\pm0$, $\pm\infty$, NaN).
+      The checklist below matches the paper’s desiderata analysis: what each single-token design achieves in principle, where it breaks, and where BitTokens still involves a deliberate trade-off.
+      </p>
+
+    <figure class="figure-container has-text-centered">
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="120" viewBox="0 0 640 120" aria-label="IEEE 754 float64 layout for Avogadro constant">
+        <rect x="40" y="40" width="60" height="36" fill="#ffcc80" stroke="#f59e0b" rx="4"/>
+        <text x="70" y="62" text-anchor="middle" font-size="12" fill="#78350f">sign</text>
+        <rect x="110" y="40" width="200" height="36" fill="#93c5fd" stroke="#3b82f6" rx="4"/>
+        <text x="210" y="62" text-anchor="middle" font-size="12" fill="#1e3a8a">11-bit exponent</text>
+        <rect x="320" y="40" width="280" height="36" fill="#bbf7d0" stroke="#22c55e" rx="4"/>
+        <text x="460" y="62" text-anchor="middle" font-size="12" fill="#14532d">52-bit significand</text>
+      </svg>
+      <p class="figure-caption">The IEEE 754 double-precision binary floating-point format (float64).</p>
+    </figure>
+
+      <h4 class="subsection-title">Desiderata at a glance</h4>
+      <p class="is-size-7" style="color: var(--text-muted); margin-bottom: 0.75rem;">
+        Hover, focus, or tap a badge to show the rationale in a floating card (anchored to the viewport so it is not clipped by the table). Same taxonomy as <a href="#desiderata">§&nbsp;Desiderata</a>; columns follow the paper’s comparison of xVal, FoNE, and BitTokens.
+      </p>
+
+      <div class="desiderata-matrix-wrap" role="region" aria-label="Desiderata checklist for xVal, FoNE, and BitTokens">
+        <div class="desiderata-matrix-scroll">
+        <table class="desiderata-matrix">
+          <thead>
+            <tr>
+              <th scope="col">Desideratum</th>
+              <th scope="col" class="col-xval">xVal</th>
+              <th scope="col" class="col-fone">FoNE</th>
+              <th scope="col" class="col-bt">BitTokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D1</span><span class="dname">Token efficiency</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>Scales a learned <code>[NUM]</code> embedding by the scalar, so the forward pass reserves exactly one token slot per number instead of a long digit chain.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Packs Fourier features of the value into a single <code>[NUM]</code> token; the sinusoidal vector is the numeric payload for that position (sign may use an extra token in some setups).</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Each parsed number becomes one <code>[NUM]</code> slot; the model adds the IEEE bit-derived vector there, so token count matches “one number, one token.”</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D2</span><span class="dname">Uniqueness</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>On the chosen rescaling, distinct values map to distinct scaled embeddings, and the number head targets a single continuous decode—so the mapping is injective on the training range.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>With frequencies covering the modeled digit grid, phases identify a unique value inside that range; decoding compares against reference encodings digit-wise.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Every finite float64 has a canonical IEEE bit pattern; the model predicts that 64-bit vector, so (up to float semantics) there is a one-to-one link between value and target bits.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D3</span><span class="dname">Structured</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>Because the embedding direction is fixed and only the scalar scales magnitude, larger numbers move the vector along a predictable ray—useful for monotonic comparisons and simple regressions.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Base-10 frequencies tie phases to digit places, so local geometry reflects positional structure; addition becomes a simple operation in Fourier (Hadamard) space.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Bits expose sign, biased exponent, and significand in the same order hardware uses, so algorithms can mirror textbook floating-point steps (align, add, round, normalize).</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D4</span><span class="dname">Scale invariance</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell no" aria-hidden="true">✗</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>To keep RMSNorm from erasing magnitude, inputs must be squeezed (e.g. into a narrow band). That rescaling collapses many orders of magnitude and fine distinctions, so the method cannot faithfully cover wide scientific ranges at full precision.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Multiple decades of frequencies capture both very large and very small magnitudes (and fractional digits) within the chosen digit budget, so the design targets wide dynamic range by construction.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Float64 spans about $10^{\pm 308}$ with roughly 15–17 decimal digits of precision, matching IEEE range; specials like infinities and NaN are native cases of the format.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D5</span><span class="dname">Normalization</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>After aggressive input rescaling, activations feeding LayerNorm/RMSNorm stay in a well-behaved magnitude band, so normalization layers no longer wipe out the encoded number—at the cost of the D4 trade-off.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Sine and cosine pairs keep each frequency’s energy bounded; combined with the shared <code>[NUM]</code> offset, the embedding RMS stays stable through normalization blocks.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Raw bits are mapped linearly to $[-1,1]$ (optionally with reciprocal bits concatenated), giving predictable norms for RMSNorm while preserving discrete meaning per dimension.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D6</span><span class="dname">Numerical stability</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell no" aria-hidden="true">✗</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>The narrow dynamic range implied by rescaling means tiny changes from FP8/BF16 matmuls or activations can already move the decoded value materially, so low-precision training is fragile relative to the intended magnitudes.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Smooth periodic features live on a compact torus; small numerical noise perturbs phases continuously rather than snapping entire exponents, which plays well with mixed-precision training.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Each channel represents a single binary digit after scaling; activations may jitter but the supervised target stays in $\{0,1\}$, so quantization noise does not collapse mantissa semantics the way tiny continuous deltas can.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D7</span><span class="dname">Continuity</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>The encoding and regression head are smooth in the underlying real; gradients flow through scalar multiplication and MSE-style objectives without hard discontinuities from thresholding.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Sinusoids are differentiable in the input, so end-to-end optimization sees smooth landscapes (modulo periodic wrapping), which is ideal for gradient-based fitting.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell partial" aria-hidden="true">~</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Training uses bit-wise BCE with sigmoid logits: nearby reals can flip many mantissa bits, so the loss landscape is not strictly continuous in the value. In practice the model still fits well because latent layers smooth those discontinuities.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D8</span><span class="dname">Robustness</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell partial" aria-hidden="true">~</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>Decoding is a direct regression into $\mathbb{R}$; there is no built-in thresholding step analogous to hardened bits, so moderate noise in late layers can shift the predicted scalar more ambiguously than digit-wise voting schemes.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Outputs are read by cosine-similarity against reference digit prototypes, which averages out small perturbations per digit position—deliberately robust under stochastic depth/dropout noise.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>The number head emits logits per bit; applying a fixed 0.5 threshold after the sigmoid snaps predictions to valid binary strings, hardening decoding against small logit jitter during inference.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="d-row-hd"><span class="dn">D9</span><span class="dname">Arithmetic</span></span></th>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell no" aria-hidden="true">✗</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-xval">xVal</span>
+                    <p>Because representable values are tightly compressed, the model lacks room to stage intermediate wide-dynamic-range results; learning general multiply/divide routines that mirror arbitrary-precision hardware is therefore impractical.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell no" aria-hidden="true">✗</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-fone">FoNE</span>
+                    <p>Multiplication is not a local operation on the torus: implementing it forces an implicit decode of mixed phases, coefficient convolution with carries, and a re-encode—precisely the bottleneck formalized for sinusoidal encodings in the paper.</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-tip" tabindex="0">
+                  <span class="d-cell ok" aria-hidden="true">✓</span>
+                  <div class="d-tip-bubble d-matrix-bubble" role="tooltip">
+                    <span class="bubble-who bubble-who-bt">BitTokens</span>
+                    <p>Addition and multiplication decompose into standard IEEE algorithms on independent bit tracks; transformers can allocate width to emulate carries, exponent handling, and significand updates in parallel.</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="desiderata-matrix-legend">
+          <span class="lg-item"><span class="mini ok" aria-hidden="true">✓</span> satisfies</span>
+          <span class="lg-item"><span class="mini partial" aria-hidden="true">~</span> trade-off / partial</span>
+          <span class="lg-item"><span class="mini no" aria-hidden="true">✗</span> breaks</span>
+        </p>
+      </div>
+
+    </div>
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 5:</strong>
+        BitTokens deliberately mirrors how computers store numbers to efficiently encode and decode numbers. It fulfills all desiderata for single-token number encodings.
+      </p>
+    </div>
+
+    <h4 class="subsection-title">How this looks in code</h4>
+    <div class="flow-row">
+      <div class="flow-box">Raw text</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Regex spans → <code>[NUM]</code></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Bit encode + pad → add to embeddings</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Transformer layers</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">Linear num head → BCE / decode</div>
+    </div>
+
+    <div class="notification is-light" style="border-left: 4px solid var(--accent);">
+      <p class="is-size-7" style="margin: 0;">
+        Full training code, tokenizers, datasets, and evaluation live in the official repository:
+        <a href="https://github.com/KreitnerL/BitTokens" target="_blank" rel="noopener"><strong>github.com/KreitnerL/BitTokens</strong></a>
+      </p>
+    </div>
+
+    <p><strong>(a) Parsing numeric spans with a regex</strong></p>
+    <div class="code-window">
+      <div class="window-header">
+        <span class="dot red-dot" aria-hidden="true"></span>
+        <span class="dot yellow-dot" aria-hidden="true"></span>
+        <span class="dot green-dot" aria-hidden="true"></span>
+        <span class="code-filename">Parsing numbers</span>
+      </div>
+      <pre class="line-numbers"><code class="language-python">NUMERIC_SPAN_REGEX = re.compile(r"[-]?(?:(?:0(?!\.[0-9]))|(?:[0-9]*[.][0-9]+)|(?:[1-9][0-9]*))")
+raw_numbers = [m.group(0).strip() for m in NUMERIC_SPAN_REGEX.finditer(sample_text)]
+nums = torch.tensor([float(n) for n in raw_numbers], dtype=torch.float64)</code></pre>
+    </div>
+
+    <p><strong>(b) Forward pass — IEEE bits from float tensors + combine at token positions</strong></p>
+    <div class="code-window">
+      <div class="window-header">
+        <span class="dot red-dot" aria-hidden="true"></span>
+        <span class="dot yellow-dot" aria-hidden="true"></span>
+        <span class="dot green-dot" aria-hidden="true"></span>
+        <span class="code-filename">Encoding numbers</span>
+      </div>
+      <pre class="line-numbers"><code class="language-python">float64_bit_shifts = torch.arange(63, -1, -1, dtype=torch.int64)
+
+def float64_tensor_to_binary_tensor(tensor_in: torch.DoubleTensor) -&gt; torch.LongTensor:
+    int_representation = tensor_in.view(torch.int64).unsqueeze(-1)
+    bits = (int_representation &gt;&gt; float64_bit_shifts) &amp; 1
+    return bits
+
+# IEEE 754 bit pattern
+bits = float64_tensor_to_binary_tensor(nums)
+
+# Optional reciprocal encoding
+reciprocal_bits = float64_tensor_to_binary_tensor(nums.reciprocal())
+full_encoding = torch.cat([bits, reciprocal_bits], dim=-1)
+
+# Combine with token embeddings (sum)
+combined[number_mask] = inputs_embeds[number_mask] + full_encoding</code></pre>
+    </div>
+
+    <p><strong>(c) Number head, prediction, and BCE loss</strong></p>
+    <div class="code-window">
+      <div class="window-header">
+        <span class="dot red-dot" aria-hidden="true"></span>
+        <span class="dot yellow-dot" aria-hidden="true"></span>
+        <span class="dot green-dot" aria-hidden="true"></span>
+        <span class="code-filename">Computing number loss</span>
+      </div>
+      <pre class="line-numbers"><code class="language-python">
+hidden_states = combined  # Dummy assignment
+output_size = bits.shape[-1]
+target_bits = bits.to(torch.float32)
+freq_weights = torch.ones(output_size).unsqueeze(0)
+
+num_head_linear = torch.nn.Linear(hidden_dim, num_bit_dims)
+pred_bits_logits = num_head_linear(hidden_states[number_mask])
+
+bce_per_bit = torch.nn.functional.binary_cross_entropy_with_logits(
+    pred_bits_logits, target_bits, reduction='none'
+)
+weighted_bce = (bce_per_bit * freq_weights).mean(dim=-1)</code></pre>
+    </div>
+
+    <p><strong>(d) Decoding bits back to float64</strong></p>
+    <div class="code-window">
+      <div class="window-header">
+        <span class="dot red-dot" aria-hidden="true"></span>
+        <span class="dot yellow-dot" aria-hidden="true"></span>
+        <span class="dot green-dot" aria-hidden="true"></span>
+        <span class="code-filename">Decoding numbers</span>
+      </div>
+      <pre class="line-numbers"><code class="language-python">def binary_tensor_to_float64_tensor(bits_int64: torch.Tensor) -&gt; torch.Tensor:
+    weights = torch.tensor(1, dtype=torch.int64) &lt;&lt; float64_bit_shifts
+    reconstructed_int = torch.sum(bits_int64 * weights, dim=-1)
+    return reconstructed_int.view(torch.int64).view(torch.float64)
+
+noisy_pred_logits = bits * 2 - 1 + torch.rand_like(bits.float()).sub_(0.5)
+x_base_digits_pred: torch.LongTensor = (noisy_pred_logits > 0).to(torch.int64)
+num_preds = binary_tensor_to_float64_tensor(x_base_digits_pred)</code></pre>
+    </div>
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 6:</strong>
+        BitTokens can easily be integrated into existing LLMs with minimal changes. The binary vector of a number can be efficiently constructed via type reinterpretation and bit shifts.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section section-white" id="results">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Results</h2>
+    <div class="content has-text-justified">
+      <p>We compare BitTokens to traditional single digit and triple digit (subword) tokenizers, as well as xVal and FoNE.</p>
+    </div>
+    <figure class="figure-container">
+      <img src="./static/images/bittokens/results-multitask.svg"
+           alt="Bar chart comparing BitTokens to baselines on multitask numeracy">
+      <p class="figure-caption">
+        <strong>Figure 4.</strong> Our BitTokens outperforms all other methods in the multi-task setting and is the superior single-token strategy for the multi-step tasks. Between the two multi-token strategies, single-digit tokenization performs best, albeit with the highest token cost.
+      </p>
+    </figure>
+
+    <div class="insight-box">
+      <p>
+        <strong class="insight-prefix">Takeaway 7:</strong>
+        BitTokens outperform all other methods and achieve near-perfect performance on comparison and single-step calculation tasks. Low perplexity shows that language understanding is not impacted.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Conclusion -->
+<section class="section section-gray" id="conclusion">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Conclusion</h2>
+    <div class="content has-text-justified">
+      <p>In brief, we answer the questions from above as follows:</p>
+
+      <div class="columns motivation-cols is-variable is-6" style="margin-top: 1rem;">
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid #94a3b8;">
+            <p class="is-size-5 has-text-weight-bold" style="color: #64748b;">How do frontier LLMs perform on arithmetic tasks?</p>
+            <p class="mt-3 is-size-6" style="color: var(--text-dark); line-height: 1.55;">
+              Frontier models solve basic comparisons reliably, but strongly rely on reasoning chains with a large number of tokens to solve calculations.
+            </p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid #f59e0b;">
+            <p class="is-size-5 has-text-weight-bold" style="color: #b45309;">What attributes should a single-token number encoding have?</p>
+            <p class="mt-3 is-size-6" style="color: var(--text-dark); line-height: 1.55;">
+              Number encodings should jointly offer a large range of input magnitudes and precisions, be compatible with (low precision) gradient-based training, and allow for the learning of core arithmetic operations.
+            </p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box has-text-centered" style="border-top: 3px solid var(--accent);">
+            <p class="is-size-5 has-text-weight-bold" style="color: var(--accent);">How do we build a better single-token number encoding?</p>
+            <p class="mt-3 is-size-6" style="color: var(--text-dark); line-height: 1.55;">
+              BitTokens fuses a dedicated number token with an IEEE&nbsp;754 float64 bit embedding and allows even small language models to learn algorithms to solve basic arithmetic operations.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BibTeX -->
+<section class="section section-white" id="bibtex">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3 section-title">Citation</h2>
+    <div class="buttons mb-3">
+      <button type="button" class="button is-small is-rounded" id="copy-bibtex" style="border-color: var(--accent); color: var(--accent);">
+        <span class="icon is-small"><i class="fas fa-copy"></i></span>
+        <span>Copy BibTeX</span>
+      </button>
+      <button type="button" class="button is-small is-rounded" id="copy-apa" style="border-color: var(--accent); color: var(--accent);">
+        <span class="icon is-small"><i class="fas fa-copy"></i></span>
+        <span>Copy APA</span>
+      </button>
+    </div>
+    <span id="apa-citation-text" hidden>Kreitner, L., Hager, P., Mengedoht, J., Kaissis, G., Rueckert, D., &amp; Menten, M. J. (2026). Efficient numeracy in language models through single-token number embeddings. In Proceedings of the Forty-third International Conference on Machine Learning. https://openreview.net/forum?id=Bh4Ubk80M8</span>
+    <div class="bibtex-box">
+      <pre style="margin:0;background:transparent;"><code id="bibtex-code">@inproceedings{
+    kreitner2026bittokens,
+    title={Efficient numeracy in language models through single-token number embeddings},
+    author={Linus Kreitner and Paul Hager and Jonathan Mengedoht and Georgios Kaissis and Daniel Rueckert and Martin J. Menten},
+    booktitle={Forty-third International Conference on Machine Learning},
+    year={2026},
+    url={https://openreview.net/forum?id=Bh4Ubk80M8}
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Acknowledgements -->
+<section class="section section-gray" id="acknowledgements">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Acknowledgements</h2>
+    <div class="content has-text-justified">
+      <p>This work was partially funded by ERC Grant Deep4MI (Grant No. 884622).</p>
+      <p>The authors gratefully acknowledge the scientific support and HPC resources provided by the Erlangen National High Performance Computing Center (NHR@FAU) of the Friedrich-Alexander-Universitaet Erlangen-Nuernberg (FAU) under the NHR project b247bb. NHR funding is provided by federal and Bavarian state authorities.</p>
+      <p>Martin J. Menten is funded by the German Research Foundation under project 532139938.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <p>
+        BitTokens · ICML 2026 · Project page template adapted from <a href="https://zanette-labs.github.io/MaxRL/">MaxRL</a> and <a href="https://nerfies.github.io/">Nerfies</a> and may be freely reused under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache License 2.0</a>.
+      </p>
+      <div class="footer-logo-row" aria-label="Project logos">
+        <a href="https://kiinformatik.mri.tum.de/en/chair-artificial-intelligence-healthcare-and-medicine" target="_blank" rel="noopener">
+          <img src="./static/images/aim-logo-white.png" alt="Chair for AI and Healthcare in Medicine">
+        </a>
+        <a href="https://mri.tum.de/en" target="_blank" rel="noopener">
+          <img src="./static/images/250213_tum_klinikum_logo_invertiert_digital.png" alt="TUM Klinikum" class="logo-tum-klinikum">
+        </a>
+        <a href="https://www.tum.de/en" target="_blank" rel="noopener">
+          <img src="./static/images/tum_white.png" alt="TUM">
+        </a>
+        <a href="https://mcml.ai/" target="_blank" rel="noopener">
+          <img src="./static/images/MCML_Logo_os.png" alt="Munich Center for Machine Learning" class="logo-mcml">
+        </a>
+        <a href="https://hpc.fau.de/" target="_blank" rel="noopener">
+          <img src="./static/images/NHRFAU_logo.png" alt="NHR FAU">
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script>
+    if (typeof Prism !== 'undefined') {
+      Prism.highlightAll();
+    }
+  </script>
+
+</body>
+</html>
