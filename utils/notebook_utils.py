@@ -6,30 +6,85 @@ IEEE float64 encode/decode live in the notebooks so the core bit conversion stay
 from __future__ import annotations
 
 import re
+import sys
+import tempfile
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
 import torch
 from transformers import PreTrainedTokenizerFast
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+_TOKENIZER_DEFS: tuple[tuple[str, str], ...] = (
+    ("sd_gpt2 (single-digit baseline)", "sd_gpt2"),
+    ("td_gpt2 (subword baseline)", "td_gpt2"),
+    ("bittoken_gpt2 (BitTokens)", "bittoken_gpt2"),
+)
 
 
-TOKENIZER_DIRS: dict[str, Path] = {
-    "sd_gpt2 (single-digit baseline)": REPO_ROOT / "tokenizers/num_text/sd_gpt2",
-    "td_gpt2 (subword baseline)": REPO_ROOT / "tokenizers/num_text/td_gpt2",
-    "bittoken_gpt2 (BitTokens)": REPO_ROOT / "tokenizers/num_text/bittoken_gpt2",
-}
+def _repo_root() -> Path:
+    """Directory that contains tokenizers/ (repository root or a staged public/ tree)."""
+    here = Path(__file__).resolve().parent
+    if here.name != "utils":
+        msg = f"notebook_utils must live under .../utils/; got {here}"
+        raise RuntimeError(msg)
+    root = here.parent
+    if not (root / "tokenizers").is_dir():
+        msg = (
+            "Expected tokenizers/ next to utils/. For marimo WASM, run "
+            "scripts/prepare_marimo_wasm_public.sh before `marimo export html-wasm`."
+        )
+        raise FileNotFoundError(msg)
+    return root
 
 
-def load_tokenizer(tokenizer_dir: Path) -> PreTrainedTokenizerFast:
+def _wasm_tokenizer_base_url() -> str:
+    """Base URL for .../public/tokenizers/num_text (Pyodide / GitHub Pages)."""
+    import marimo as mo
+
+    loc = mo.notebook_location()
+    if loc is None:
+        msg = "marimo.notebook_location() is None; cannot resolve tokenizer URLs in WASM."
+        raise RuntimeError(msg)
+    return f"{str(loc).rstrip('/')}/public/tokenizers/num_text"
+
+
+def _load_tokenizer_from_http_dir(url_prefix: str) -> PreTrainedTokenizerFast:
+    """Download tokenizer JSON files into a temp dir and load with Hugging Face."""
+    base = url_prefix.rstrip("/") + "/"
+    tmp = Path(tempfile.mkdtemp(prefix="bittokens_tok_"))
+    for fname in ("tokenizer.json", "tokenizer_config.json", "special_tokens_map.json"):
+        dest = tmp / fname
+        try:
+            urllib.request.urlretrieve(base + fname, dest)
+        except urllib.error.HTTPError as e:
+            msg = f"Failed to download {base + fname}: {e}"
+            raise FileNotFoundError(msg) from e
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tmp)
+    tokenizer.padding_side = "left"
+    return tokenizer
+
+
+def load_tokenizer(tokenizer_dir: Path | str) -> PreTrainedTokenizerFast:
+    if isinstance(tokenizer_dir, str) and tokenizer_dir.startswith(("http://", "https://")):
+        return _load_tokenizer_from_http_dir(tokenizer_dir)
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_dir)
     tokenizer.padding_side = "left"
     return tokenizer
 
 
 def load_all_tokenizers() -> dict[str, PreTrainedTokenizerFast]:
-    return {name: load_tokenizer(path) for name, path in TOKENIZER_DIRS.items()}
+    if sys.platform == "emscripten":
+        http_base = _wasm_tokenizer_base_url()
+        return {
+            label: load_tokenizer(f"{http_base}/{subdir}") for label, subdir in _TOKENIZER_DEFS
+        }
+    root = _repo_root()
+    return {
+        label: load_tokenizer(root / "tokenizers" / "num_text" / subdir)
+        for label, subdir in _TOKENIZER_DEFS
+    }
 
 
 def html_escape(s: str) -> str:

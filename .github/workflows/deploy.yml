@@ -15,6 +15,10 @@ on:
     paths:
       - "docs/**"
       - "bittokens_notebook.py"
+      - "bittokens_notebook.ipynb"
+      - "utils/notebook_utils.py"
+      - "tokenizers/num_text/**"
+      - "scripts/prepare_marimo_wasm_public.sh"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -48,6 +52,9 @@ jobs:
       - name: Install marimo
         run: pip install --upgrade pip && pip install "marimo>=0.23.0"
 
+      - name: Prepare Marimo WASM public bundle
+        run: bash scripts/prepare_marimo_wasm_public.sh
+
       - name: Assemble site and export notebook
         run: |
           set -eux
@@ -58,6 +65,7 @@ jobs:
           marimo export html-wasm bittokens_notebook.py -o _site/marimo --mode edit -f
           touch _site/.nojekyll
           test -f _site/marimo/index.html
+          test -f _site/marimo/public/utils/notebook_utils.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

@@ -34,14 +34,52 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(mo):
     import re
+    import sys
+    import types
+    import urllib.error
+    import urllib.request
 
     import torch
 
-    from utils import notebook_utils as btn
+    def _load_notebook_utils():
+        try:
+            from utils import notebook_utils as m
 
+            return m
+        except ModuleNotFoundError:
+            if sys.platform != "emscripten":
+                raise
+        # Marimo WASM (Pyodide): repo packages are not on sys.path. The export copies
+        # ./public/ next to the notebook (see scripts/prepare_marimo_wasm_public.sh).
+        loc = mo.notebook_location()
+        if loc is None:
+            msg = "marimo.notebook_location() is None; cannot load public/utils bundle."
+            raise RuntimeError(msg)
+        base = str(loc).rstrip("/")
+        mod_url = f"{base}/public/utils/notebook_utils.py"
+        try:
+            with urllib.request.urlopen(mod_url) as resp:
+                source = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            msg = (
+                f"Could not fetch {mod_url} ({e}). "
+                "For local `marimo export html-wasm`, run scripts/prepare_marimo_wasm_public.sh first."
+            )
+            raise RuntimeError(msg) from e
+        mod = types.ModuleType("utils.notebook_utils")
+        mod.__file__ = mod_url
+        mod.__package__ = "utils"
+        mod.__name__ = "utils.notebook_utils"
+        exec(compile(source, mod_url, "exec"), mod.__dict__)
+        pkg = types.ModuleType("utils")
+        pkg.notebook_utils = mod
+        sys.modules.setdefault("utils", pkg)
+        sys.modules["utils.notebook_utils"] = mod
+        return mod
 
+    btn = _load_notebook_utils()
     tokenizers = btn.load_all_tokenizers()
     print("Loaded tokenizers:", ", ".join(tokenizers.keys()))
     return btn, re, tokenizers, torch
