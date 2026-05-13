@@ -15,7 +15,7 @@ a novel encoding strategy that represents any number as a single token using its
 
 
 ## How to use BitTokens
-We provide an intuitive [jupyter notebook](bittokens.ipynb) that highlights the benefits of BitTokens and how they can be integrated into Transformer models. A more detailed implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
+We provide an intuitive [marimo notebook](bittokens_notebook.py) (`marimo edit bittokens.py`) and a [classic Jupyter notebook](bittokens_notebook.ipynb) with the same content if you prefer not to install marimo. Shared display and tokenizer helpers live in [`utils/bittokens_notebook.py`](utils/bittokens_notebook.py). A more detailed implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
 
 
 ## Setup
