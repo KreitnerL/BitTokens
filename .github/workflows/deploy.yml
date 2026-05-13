@@ -1,5 +1,11 @@
 # Builds the project page from docs/ and the Marimo WASM notebook, then deploys to GitHub Pages.
-# Repository Settings → Pages → Build and deployment → Source: GitHub Actions (not "Deploy from a branch").
+#
+# IMPORTANT — one-time repository setting (otherwise the marimo subpage will 404):
+#   Repository → Settings → Pages → Build and deployment → Source: "GitHub Actions"
+#   (NOT "Deploy from a branch"). If the source is "Deploy from a branch", GitHub
+#   silently runs a second deployment from main/docs after this workflow finishes
+#   and overwrites the artifact this workflow uploaded. Since docs/marimo/ is empty
+#   on the branch, /marimo/index.html then 404s while the rest of the site works.
 
 name: Deploy GitHub Pages
 
@@ -27,6 +33,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Configure Pages
+        # Standard step for Actions-deployed Pages. Will fail loudly if Pages
+        # is not configured for this repo, but cannot detect a misconfigured
+        # "Deploy from a branch" source — that has to be changed manually.
+        uses: actions/configure-pages@v5
 
       - name: Set up Python
         uses: actions/setup-python@v6
