@@ -184,8 +184,6 @@ latex/*
 .vscode/
 pyrightconfig.json
 
-.github/
-
 .pyrightignore
 
 __marimo__/

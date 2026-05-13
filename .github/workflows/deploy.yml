@@ -1,0 +1,63 @@
+# Builds the project page from docs/ and the Marimo WASM notebook, then deploys to GitHub Pages.
+# Repository Settings → Pages → Build and deployment → Source: GitHub Actions (not "Deploy from a branch").
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "bittokens_notebook.py"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install marimo
+        run: pip install --upgrade pip && pip install "marimo>=0.23.0"
+
+      - name: Assemble site and export notebook
+        run: |
+          set -eux
+          rm -rf _site
+          mkdir -p _site
+          cp -a docs/. _site/
+          rm -rf _site/marimo
+          marimo export html-wasm bittokens_notebook.py -o _site/marimo --mode edit -f
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,10 +1,11 @@
 # BitTokens: Efficient numeracy in language models through single-token number embeddings
 
 <p align="center">
-<a href="https://arxiv.org/abs/2510.06824" target="_blank"><img src="https://img.shields.io/badge/arXiv-2510.06824-b31b1b.svg" alt="arxiv paper"></a>
-<a href="https://openreview.net/forum?id=Bh4Ubk80M8"><img src="https://img.shields.io/badge/ICML 2026-Spotlight-gold" alt="ICML 2026 Spotlight"></a>
-<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License"></a>
-</p>
+    <a href="https://arxiv.org/abs/2510.06824" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/arXiv-2510.06824-b31b1b.svg" alt="arxiv paper"></a>
+    <a href="https://openreview.net/forum?id=Bh4Ubk80M8" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/ICML 2026-Spotlight-gold" alt="ICML 2026 Spotlight"></a>
+    <a href="https://kreitnerl.github.io/BitTokens/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Website-BitTokens-32a852" alt="BitTokens Website"></a>
+    <a href="https://kreitnerl.github.io/BitTokens/marimo/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Marimo-Notebook-436972" alt="Marimo notebook (browser)"></a>
+    <a href="LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License"></a>
 </p>
 <!-- <a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a> -->
 
@@ -15,7 +16,16 @@ a novel encoding strategy that represents any number as a single token using its
 
 
 ## How to use BitTokens
-We provide an intuitive [marimo notebook](bittokens_notebook.py) (`marimo edit bittokens.py`) and a [classic Jupyter notebook](bittokens_notebook.ipynb) with the same content if you prefer not to install marimo. Shared display and tokenizer helpers live in [`utils/bittokens_notebook.py`](utils/bittokens_notebook.py). A more detailed implementation of BitTokens can be found in the [bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py) file.
+To get started check out our interactive notebook:
+
+**Online:** Open **[the interactive walkthrough in your browser](https://kreitnerl.github.io/BitTokens/marimo/)**
+
+**Locally:** Use the [Jupyter notebook](bittokens_notebook.ipynb), or the [Marimo notebook](bittokens_notebook.py) (same content) with:
+```sh
+marimo edit bittokens_notebook.py
+```
+
+A more detailed implementation of BitTokens can be found in the **[bittoken_embedding.py](networks/number_embedding_modules/bittoken_embedding.py)** file.
 
 
 ## Setup
@@ -37,13 +47,13 @@ We provide an intuitive [marimo notebook](bittokens_notebook.py) (`marimo edit b
 ### Install remaining dependencies:
 > [!NOTE]
 > 
-> At the time of writing, there exists no official pre-built wheel for [FlashAttention](https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features) with `torch=2.11` and `python=3.13`. You can use [this](https://github.com/Dao-AILab/flash-attention/issues/2425#issue-4196009498) approach instead.
+> At the time of writing, there exists no official pre-built wheel for [FlashAttention](https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features) with `torch=2.11` and `python=3.13`. We use [this](https://github.com/Dao-AILab/flash-attention/issues/2425#issue-4196009498) approach instead.
 
 > [!TIP]
 > Sometimes [FlashAttention](https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features) causes trouble when installing. If you run into an error, please refer to the official install guide.
     
 ```sh
-uv pip install flash-attn==2.8.3 --no-build-isolation
+uv pip install "flash_attn-2.8.3+cu12torch2.11cxx11abiTRUE-cp313-cp313-linux_x86_64.whl" # replace with `flash-attn==2.8.3 --no-build-isolation` once official wheel available
 uv pip install git+https://github.com/KellerJordan/Muon
 ```
 
