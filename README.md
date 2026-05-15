@@ -7,7 +7,6 @@
     <a href="bittokens_notebook.ipynb" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Marimo-Notebook-436972" alt="Marimo notebook (browser)"></a>
     <a href="LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License"></a>
 </p>
-<!-- <a href="https://scholar.google.com/citations?user=huPvQJIAAAAJ" target="_blank"><img alt="ICML 2026" src="https://img.shields.io/badge/Google%20Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white"/></a> -->
 
 
 LLMs perform poorly on arithmetic tasks, requiring excessive reasoning tokens to achieve good performance. We propose BitTokens,

@@ -18,6 +18,14 @@ This folder contains the code used to generate, collect, and analyze frontier mo
 
 ## Setup
 
+Results are zipped for convenience. Unzip via:
+```sh
+cd frontier_model_analysis/
+unzip frontier_model_analysis_results.zip
+mv frontier_model_analysis/results/ .
+rm -rf frontier_model_analysis/
+```
+
 This code uses the same environment as the main project.
 
 - Credentials (supported sources: env vars or `.env` file):
