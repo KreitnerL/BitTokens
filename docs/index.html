@@ -48,9 +48,20 @@
       --bg-gray: #f8fafc;
       --border-light: #e5e7eb;
       --layout-max: 72rem;
+      --hero-layout-max: 86rem;
       --layout-pad: 1.25rem;
       --nav-width: 10.5rem;
       --layout-gap: 1.5rem;
+      --layout-rail-margin: max(var(--layout-pad), calc((100vw - var(--layout-max)) / 2));
+      --content-column-width: calc(
+        var(--layout-max) - 2 * var(--layout-pad) - var(--nav-width) - var(--layout-gap)
+      );
+      --hero-content-column-width: calc(
+        var(--hero-layout-max) - 2 * var(--layout-pad) - var(--nav-width) - var(--layout-gap)
+      );
+      --hero-shell-offset: calc(
+        (var(--content-column-width) - var(--hero-content-column-width)) / 2
+      );
     }
 
     body { color: var(--text-dark); }
@@ -70,9 +81,15 @@
       display: flex;
       align-items: flex-start;
       gap: var(--layout-gap);
-      max-width: var(--layout-max);
-      margin: 0 auto;
+      width: min(var(--hero-layout-max), 100%);
+      max-width: var(--hero-layout-max);
+      margin-left: calc(var(--layout-rail-margin) + var(--hero-shell-offset));
+      margin-right: auto;
       padding: 0 var(--layout-pad);
+    }
+    .hero .hero-body .container.is-max-desktop {
+      max-width: 100%;
+      width: 100%;
     }
     .hero-shell-spacer {
       display: none;
@@ -96,7 +113,12 @@
     }
     @media (max-width: 1099px) {
       .hero-shell {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
         padding: 0;
+        --hero-shell-offset: 0px;
       }
     }
     .hero .title.is-1 {
@@ -107,14 +129,14 @@
     .hero .publication-authors a { color: #374151 !important; }
     .hero .publication-authors a:hover { color: var(--accent-hover) !important; text-decoration: underline; }
     .hero .publication-authors {
-      max-width: 52rem;
+      max-width: 62rem;
       margin-left: auto;
       margin-right: auto;
       line-height: 1.75;
     }
     @media (min-width: 769px) {
       .hero .publication-authors {
-        max-width: 38rem;
+        max-width: 48rem;
       }
     }
     .hero .publication-authors .author-block { margin-right: 0.25rem; display: inline-block; }
@@ -1187,8 +1209,10 @@
       display: flex;
       align-items: flex-start;
       gap: var(--layout-gap);
+      width: min(var(--layout-max), 100%);
       max-width: var(--layout-max);
-      margin: 0 auto;
+      margin-left: var(--layout-rail-margin);
+      margin-right: auto;
       padding: 0 var(--layout-pad);
     }
     .section-nav {
@@ -1251,7 +1275,13 @@
       }
     }
     @media (max-width: 1099px) {
-      .page-shell { padding: 0; }
+      .page-shell {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0;
+      }
     }
     @media (max-width: 768px) {
       .image-lightbox {
@@ -1305,7 +1335,7 @@
             <span class="sep">·</span>
             <span style="color:#b45309;">Spotlight paper</span>
           </div>
-          <h1 class="title is-2 publication-title">Efficient numeracy in language models<br>through single-token number embeddings</h1>
+          <h1 class="title is-2 publication-title">Efficient numeracy in language models through single-token number embeddings</h1>
 
           <div class="is-size-5 publication-authors">
             <span class="author-block">
@@ -1434,7 +1464,7 @@
           </div>
 
           <div style="margin-top: 1rem; text-align: justify;">
-            <p style="font-family: 'Castoro', Georgia, serif; font-size: 1.05rem; color: #374151; max-width: 52rem; margin: 0 auto;">
+            <p style="font-family: 'Castoro', Georgia, serif; font-size: 1.05rem; color: #374151; max-width: 62rem; margin: 0 auto;">
               <strong>TL;DR</strong> Frontier LLMs often spend thousands of tokens reasoning through basic arithmetic.
               Ordinary tokenizers split numbers into many pieces.
               We propose <strong>BitTokens</strong>, a novel tokenization strategy for LLMs that embeds numbers using their IEEE 754 binary floating-point representation, which allows for efficient numeracy in language models.
