@@ -151,6 +151,13 @@ $(document).ready(function() {
         var dragStartY = 0;
         var dragOriginX = 0;
         var dragOriginY = 0;
+        var isPinching = false;
+        var pinchStartDistance = 0;
+        var pinchStartScale = 1;
+        var pinchStartTranslateX = 0;
+        var pinchStartTranslateY = 0;
+        var pinchStartCenterX = 0;
+        var pinchStartCenterY = 0;
 
         function isDefaultView() {
             return userScale === 1 && translateX === 0 && translateY === 0;
@@ -235,6 +242,8 @@ $(document).ready(function() {
         }
 
         function closeLightbox() {
+            endPinch();
+            dragging = false;
             modal.classList.remove('is-open');
             modal.classList.remove('is-dragging');
             modal.hidden = true;
@@ -249,6 +258,49 @@ $(document).ready(function() {
             if (userScale === 1 && next !== 1) lockDisplayedSizeBeforeZoom();
             userScale = next;
             updateTransform();
+        }
+
+        function touchDistance(touches) {
+            var dx = touches[0].clientX - touches[1].clientX;
+            var dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        function touchCenter(touches) {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2
+            };
+        }
+
+        function beginPinch(touches) {
+            isPinching = true;
+            dragging = false;
+            viewport.classList.remove('is-dragging');
+            modal.classList.remove('is-dragging');
+            pinchStartDistance = touchDistance(touches);
+            if (pinchStartDistance < 1) pinchStartDistance = 1;
+            pinchStartScale = userScale;
+            pinchStartTranslateX = translateX;
+            pinchStartTranslateY = translateY;
+            var center = touchCenter(touches);
+            pinchStartCenterX = center.x;
+            pinchStartCenterY = center.y;
+            if (userScale === 1) lockDisplayedSizeBeforeZoom();
+        }
+
+        function updatePinch(touches) {
+            if (pinchStartDistance < 1) return;
+            var distance = touchDistance(touches);
+            userScale = Math.min(4, Math.max(0.5, pinchStartScale * (distance / pinchStartDistance)));
+            var center = touchCenter(touches);
+            translateX = pinchStartTranslateX + (center.x - pinchStartCenterX);
+            translateY = pinchStartTranslateY + (center.y - pinchStartCenterY);
+            updateTransform();
+        }
+
+        function endPinch() {
+            isPinching = false;
         }
 
         window.addEventListener('resize', function () {
@@ -304,9 +356,30 @@ $(document).ready(function() {
             zoomBy(ev.deltaY < 0 ? 0.12 : -0.12);
         }, { passive: false });
 
+        img.addEventListener('touchstart', function (ev) {
+            if (!modal.classList.contains('is-open')) return;
+            if (ev.touches.length === 2) {
+                ev.preventDefault();
+                beginPinch(ev.touches);
+            }
+        }, { passive: false });
+
+        img.addEventListener('touchmove', function (ev) {
+            if (!modal.classList.contains('is-open')) return;
+            if (!isPinching || ev.touches.length !== 2) return;
+            ev.preventDefault();
+            updatePinch(ev.touches);
+        }, { passive: false });
+
+        img.addEventListener('touchend', function (ev) {
+            if (ev.touches.length < 2) endPinch();
+        });
+
+        img.addEventListener('touchcancel', endPinch);
+
         img.addEventListener('pointerdown', function (ev) {
             if (ev.button !== 0) return;
-            if (isDefaultView()) return;
+            if (isDefaultView() || isPinching) return;
             dragging = true;
             viewport.classList.add('is-dragging');
             modal.classList.add('is-dragging');
@@ -318,7 +391,7 @@ $(document).ready(function() {
         });
 
         img.addEventListener('pointermove', function (ev) {
-            if (!dragging) return;
+            if (!dragging || isPinching) return;
             translateX = dragOriginX + (ev.clientX - dragStartX);
             translateY = dragOriginY + (ev.clientY - dragStartY);
             updateTransform();
