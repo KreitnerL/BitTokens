@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redirecting… · BitTokens</title>
+  <link rel="canonical" href="https://kreitnerl.github.io/BitTokens/">
+  <script>
+    (function () {
+      var path = location.pathname;
+      var lower = path.toLowerCase();
+      var canonical = '/BitTokens';
+      var target = canonical + '/';
+
+      if (lower === '/bittokens' || lower === '/bittokens/') {
+        target = canonical + '/' + location.search + location.hash;
+      } else if (lower.indexOf('/bittokens/') === 0) {
+        target = canonical + path.slice(10) + location.search + location.hash;
+      } else if (lower.indexOf('/bittokens') === 0 && path !== canonical && path.indexOf(canonical + '/') !== 0) {
+        target = canonical + path.slice(10) + location.search + location.hash;
+      } else if (lower.indexOf(canonical.toLowerCase() + '/') === 0) {
+        target = canonical + path.slice(canonical.length) + location.search + location.hash;
+      }
+
+      location.replace(target);
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0; url=https://kreitnerl.github.io/BitTokens/">
+</head>
+<body>
+  <p>Redirecting to <a href="https://kreitnerl.github.io/BitTokens/">BitTokens</a>…</p>
+</body>
+</html>

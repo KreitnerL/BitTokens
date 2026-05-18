@@ -14,6 +14,10 @@
   <meta property="og:url" content="https://kreitnerl.github.io/BitTokens/">
   <meta name="twitter:card" content="summary_large_image">
 
+  <link rel="icon" href="static/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="static/favicon.svg">
+
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
 
@@ -43,16 +47,58 @@
       --bg-white: #ffffff;
       --bg-gray: #f8fafc;
       --border-light: #e5e7eb;
+      --layout-max: 72rem;
+      --layout-pad: 1.25rem;
+      --nav-width: 10.5rem;
+      --layout-gap: 1.5rem;
     }
 
     body { color: var(--text-dark); }
 
     .hero {
+      position: relative;
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
       background: linear-gradient(180deg, #f0fdfa 0%, #f8fafc 100%);
       border-bottom: 1px solid var(--border-light);
+      overflow-x: clip;
+      overflow-y: visible;
+    }
+    .hero-shell {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--layout-gap);
+      max-width: var(--layout-max);
+      margin: 0 auto;
+      padding: 0 var(--layout-pad);
+    }
+    .hero-shell-spacer {
+      display: none;
+      flex: 0 0 var(--nav-width);
+      flex-shrink: 0;
+    }
+    .hero-shell-main {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+    }
+    .hero .hero-body {
+      padding-top: 2rem;
+      padding-bottom: 0.8rem;
       overflow: visible !important;
     }
-    .hero .hero-body { padding-top: 2rem; padding-bottom: 0.8rem; overflow: visible !important; }
+    @media (min-width: 1100px) {
+      .hero-shell-spacer {
+        display: block;
+      }
+    }
+    @media (max-width: 1099px) {
+      .hero-shell {
+        padding: 0;
+      }
+    }
     .hero .title.is-1 {
       color: var(--accent);
       font-weight: 500;
@@ -60,6 +106,17 @@
     }
     .hero .publication-authors a { color: #374151 !important; }
     .hero .publication-authors a:hover { color: var(--accent-hover) !important; text-decoration: underline; }
+    .hero .publication-authors {
+      max-width: 52rem;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.75;
+    }
+    @media (min-width: 769px) {
+      .hero .publication-authors {
+        max-width: 38rem;
+      }
+    }
     .hero .publication-authors .author-block { margin-right: 0.25rem; display: inline-block; }
     .hero .publication-authors sup { font-size: 0.7em; }
     .hero .publication-authors .d-tip {
@@ -184,6 +241,171 @@
       margin: 1.5rem 0;
     }
     .figure-container img { border-radius: 4px; }
+    .figure-zoom-trigger {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      border: none;
+      padding: 0;
+      background: transparent;
+      cursor: zoom-in;
+      vertical-align: top;
+      line-height: 0;
+    }
+    .figure-zoom-trigger img,
+    .figure-zoom-trigger svg {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+    .figure-zoom-trigger:has(> svg) {
+      display: block;
+      width: 100%;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .figure-zoom-trigger > svg {
+      aspect-ratio: 640 / 120;
+    }
+    .figure-zoom-trigger .figure-zoom-hint {
+      position: absolute;
+      right: 0.55rem;
+      bottom: 0.55rem;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.72);
+      color: #fff;
+      font-size: 0.85rem;
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+    .figure-zoom-trigger:hover .figure-zoom-hint,
+    .figure-zoom-trigger:focus-visible .figure-zoom-hint {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .figure-zoom-trigger:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .image-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+      cursor: grab;
+    }
+    .image-lightbox.is-open {
+      display: flex;
+    }
+    .image-lightbox-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      cursor: grab;
+      z-index: 0;
+    }
+    .image-lightbox-panel {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      min-height: 0;
+      pointer-events: none;
+    }
+    .image-lightbox-toolbar {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding: 0.35rem 0.5rem;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+    .image-lightbox-toolbar button {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-lightbox-toolbar button:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+    body.is-lightbox-open {
+      cursor: grab !important;
+    }
+    body.is-lightbox-open .image-lightbox-toolbar button {
+      cursor: pointer !important;
+    }
+    .image-lightbox-zoom-label {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.75rem;
+      color: #e2e8f0;
+      min-width: 3rem;
+      text-align: center;
+    }
+    .image-lightbox-viewport {
+      pointer-events: none;
+      overflow: visible;
+      flex: 1 1 auto;
+      width: calc(100vw - 4rem);
+      height: calc(100vh - 7.5rem);
+      max-width: calc(100vw - 4rem);
+      max-height: calc(100vh - 7.5rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+    }
+    .image-lightbox.is-open.is-dragging,
+    .image-lightbox.is-open.is-dragging .image-lightbox-backdrop,
+    .image-lightbox-viewport.is-dragging,
+    .image-lightbox-viewport.is-dragging img {
+      cursor: grabbing;
+    }
+    .image-lightbox-viewport img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: auto;
+      cursor: grab;
+    }
     .figure-caption {
       font-size: 0.9rem;
       color: var(--text-muted);
@@ -664,7 +886,8 @@
       border: 1px solid var(--border-light);
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
-      overflow: visible;
+      max-width: 100%;
+      overflow: hidden;
     }
     .desiderata-matrix-scroll {
       overflow-x: auto;
@@ -896,14 +1119,176 @@
     .desiderata-matrix-legend .mini.ok { color: #047857; background: #d1fae5; }
     .desiderata-matrix-legend .mini.no { color: #b91c1c; background: #fee2e2; }
     .desiderata-matrix-legend .mini.partial { color: #b45309; background: #fef3c7; }
+
+    /* Prevent horizontal page scroll (clip preserves position:sticky) */
+    html {
+      overflow-x: clip;
+    }
+    body {
+      overflow-x: clip;
+      max-width: 100%;
+    }
+    .hero .hero-body {
+      overflow-x: visible !important;
+    }
+    .page-main {
+      min-width: 0;
+      flex: 1;
+      width: 100%;
+    }
+    .page-shell .container {
+      max-width: 100%;
+    }
+    .figure-container svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .flow-row {
+      max-width: 100%;
+    }
+    .code-window {
+      max-width: 100%;
+      width: 100%;
+    }
+    .code-window pre[class*="language-"] {
+      overflow-x: auto;
+    }
+    .code-window .window-header .code-copy-btn {
+      margin-left: auto;
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid #555;
+      color: #c8c8c8;
+      border-radius: 6px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.72rem;
+      font-family: 'Google Sans', system-ui, sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      line-height: 1.2;
+    }
+    .code-window .window-header .code-copy-btn:hover {
+      background: #333;
+      border-color: #777;
+      color: #fff;
+    }
+    .code-window .window-header .code-copy-btn.is-copied {
+      border-color: #27c93f;
+      color: #27c93f;
+    }
+
+    /* Desktop section navigation (sits left of content, below hero) */
+    .page-shell {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--layout-gap);
+      max-width: var(--layout-max);
+      margin: 0 auto;
+      padding: 0 var(--layout-pad);
+    }
+    .section-nav {
+      display: none;
+      flex: 0 0 var(--nav-width);
+      flex-shrink: 0;
+      align-self: flex-start;
+      padding: 2.5rem 0 2rem;
+      max-height: calc(100vh - 2.5rem);
+      overflow-y: auto;
+      z-index: 5;
+      scrollbar-width: thin;
+    }
+    .section-nav-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 0 0 0.65rem;
+    }
+    .section-nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-left: 2px solid #e5e7eb;
+    }
+    .section-nav li { margin: 0; }
+    .section-nav a {
+      display: block;
+      padding: 0.35rem 0 0.35rem 0.85rem;
+      margin-left: -2px;
+      border-left: 2px solid transparent;
+      font-family: 'Noto Sans', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1.35;
+      color: #64748b;
+      text-decoration: none;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .section-nav a:hover {
+      color: var(--accent);
+    }
+    .section-nav a.is-active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      font-weight: 600;
+    }
+    section[id] {
+      scroll-margin-top: 1.25rem;
+    }
+    @media (min-width: 1100px) {
+      .section-nav {
+        display: block;
+        position: sticky;
+        top: calc(50vh - 9rem);
+        align-self: flex-start;
+        max-height: min(70vh, calc(100vh - 3rem));
+      }
+    }
+    @media (max-width: 1099px) {
+      .page-shell { padding: 0; }
+    }
+    @media (max-width: 768px) {
+      .image-lightbox {
+        padding: 1rem;
+      }
+      .image-lightbox-viewport {
+        width: calc(100vw - 2rem);
+        height: calc(100vh - 5.5rem);
+        max-width: calc(100vw - 2rem);
+        max-height: calc(100vh - 5.5rem);
+      }
+    }
   </style>
+  <script>
+    (function () {
+      var path = location.pathname;
+      var lower = path.toLowerCase();
+      var canonical = '/BitTokens';
+      if (lower === '/bittokens' || lower === '/bittokens/') {
+        location.replace(canonical + '/' + location.search + location.hash);
+        return;
+      }
+      if (lower.indexOf('/bittokens/') === 0 && path.indexOf('/BitTokens/') !== 0) {
+        location.replace(canonical + path.slice(10) + location.search + location.hash);
+      }
+    })();
+  </script>
 </head>
 <body>
 
 <!-- Hero -->
-<section class="hero">
+<section class="hero" id="top">
+  <div class="hero-shell">
+    <div class="hero-shell-spacer" aria-hidden="true"></div>
+    <div class="hero-shell-main">
   <div class="hero-body">
-    <div class="container is-max-widescreen">
+    <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <div class="spotlight-ribbon">
@@ -1052,10 +1437,31 @@
       </div>
     </div>
   </div>
+    </div>
+  </div>
 </section>
 
+<div class="page-shell">
+  <nav class="section-nav" aria-label="Page sections">
+    <p class="section-nav-title">On this page</p>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#motivation">Motivation</a></li>
+      <li><a href="#contributions">Contributions</a></li>
+      <li><a href="#frontier">Frontier LLMs</a></li>
+      <li><a href="#desiderata">Desiderata</a></li>
+      <li><a href="#bittokens">BitTokens</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#bibtex">Citation</a></li>
+      <li><a href="#acknowledgements">Acknowledgements</a></li>
+    </ul>
+  </nav>
+  <div class="page-main">
+
+
 <!-- Teaser -->
-<section class="section section-white" style="padding-top: 0.5rem;">
+<section class="section section-white" id="overview" style="padding-top: 0.5rem;">
   <div class="container is-max-desktop">
     <div class="figure-container" style="margin: 0;">
       <figure class="has-text-centered">
@@ -1518,7 +1924,7 @@
       </p>
 
     <figure class="figure-container has-text-centered">
-      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="120" viewBox="0 0 640 120" aria-label="IEEE 754 float64 layout for Avogadro constant">
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="120" viewBox="0 0 640 120" preserveAspectRatio="xMidYMid meet" aria-label="IEEE 754 double-precision binary floating-point format (float64)">
         <rect x="40" y="40" width="60" height="36" fill="#ffcc80" stroke="#f59e0b" rx="4"/>
         <text x="70" y="62" text-anchor="middle" font-size="12" fill="#78350f">sign</text>
         <rect x="110" y="40" width="200" height="36" fill="#93c5fd" stroke="#3b82f6" rx="4"/>
@@ -1862,6 +2268,7 @@
         <span class="dot yellow-dot" aria-hidden="true"></span>
         <span class="dot green-dot" aria-hidden="true"></span>
         <span class="code-filename">Parsing numbers</span>
+        <button type="button" class="code-copy-btn" aria-label="Copy code"><i class="fas fa-copy" aria-hidden="true"></i><span>Copy</span></button>
       </div>
       <pre class="line-numbers"><code class="language-python">NUMERIC_SPAN_REGEX = re.compile(r"[-]?(?:(?:0(?!\.[0-9]))|(?:[0-9]*[.][0-9]+)|(?:[1-9][0-9]*))")
 raw_numbers = [m.group(0).strip() for m in NUMERIC_SPAN_REGEX.finditer(sample_text)]
@@ -1875,6 +2282,7 @@ nums = torch.tensor([float(n) for n in raw_numbers], dtype=torch.float64)</code>
         <span class="dot yellow-dot" aria-hidden="true"></span>
         <span class="dot green-dot" aria-hidden="true"></span>
         <span class="code-filename">Encoding numbers</span>
+        <button type="button" class="code-copy-btn" aria-label="Copy code"><i class="fas fa-copy" aria-hidden="true"></i><span>Copy</span></button>
       </div>
       <pre class="line-numbers"><code class="language-python">float64_bit_shifts = torch.arange(63, -1, -1, dtype=torch.int64)
 
@@ -1901,6 +2309,7 @@ combined[number_mask] = inputs_embeds[number_mask] + full_encoding</code></pre>
         <span class="dot yellow-dot" aria-hidden="true"></span>
         <span class="dot green-dot" aria-hidden="true"></span>
         <span class="code-filename">Computing number loss</span>
+        <button type="button" class="code-copy-btn" aria-label="Copy code"><i class="fas fa-copy" aria-hidden="true"></i><span>Copy</span></button>
       </div>
       <pre class="line-numbers"><code class="language-python">
 hidden_states = combined  # Dummy assignment
@@ -1924,6 +2333,7 @@ weighted_bce = (bce_per_bit * freq_weights).mean(dim=-1)</code></pre>
         <span class="dot yellow-dot" aria-hidden="true"></span>
         <span class="dot green-dot" aria-hidden="true"></span>
         <span class="code-filename">Decoding numbers</span>
+        <button type="button" class="code-copy-btn" aria-label="Copy code"><i class="fas fa-copy" aria-hidden="true"></i><span>Copy</span></button>
       </div>
       <pre class="line-numbers"><code class="language-python">def binary_tensor_to_float64_tensor(bits_int64: torch.Tensor) -&gt; torch.Tensor:
     weights = torch.tensor(1, dtype=torch.int64) &lt;&lt; float64_bit_shifts
@@ -2045,6 +2455,9 @@ num_preds = binary_tensor_to_float64_tensor(x_base_digits_pred)</code></pre>
   </div>
 </section>
 
+  </div>
+</div>
+
 <footer class="footer">
   <div class="container">
     <div class="content has-text-centered">
@@ -2071,6 +2484,22 @@ num_preds = binary_tensor_to_float64_tensor(x_base_digits_pred)</code></pre>
     </div>
   </div>
 </footer>
+
+<div id="image-lightbox" class="image-lightbox" role="dialog" aria-modal="true" aria-label="Expanded figure" hidden>
+  <div class="image-lightbox-backdrop" data-lightbox-close aria-hidden="true"></div>
+  <div class="image-lightbox-panel">
+    <div class="image-lightbox-toolbar">
+      <button type="button" class="image-lightbox-zoom-out" aria-label="Zoom out">−</button>
+      <span class="image-lightbox-zoom-label" aria-live="polite">100%</span>
+      <button type="button" class="image-lightbox-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="image-lightbox-reset" aria-label="Reset zoom" title="Reset zoom"><i class="fas fa-compress" aria-hidden="true"></i></button>
+      <button type="button" class="image-lightbox-close-btn" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
+    </div>
+    <div class="image-lightbox-viewport">
+      <img class="image-lightbox-image" src="" alt="">
+    </div>
+  </div>
+</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
