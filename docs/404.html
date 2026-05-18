@@ -10,22 +10,25 @@
       var path = location.pathname;
       var lower = path.toLowerCase();
       var canonical = '/BitTokens';
-      var target = canonical + '/';
+      var suffix = location.search + location.hash;
+      var target = null;
 
       if (lower === '/bittokens' || lower === '/bittokens/') {
-        target = canonical + '/' + location.search + location.hash;
-      } else if (lower.indexOf('/bittokens/') === 0) {
-        target = canonical + path.slice(10) + location.search + location.hash;
-      } else if (lower.indexOf('/bittokens') === 0 && path !== canonical && path.indexOf(canonical + '/') !== 0) {
-        target = canonical + path.slice(10) + location.search + location.hash;
-      } else if (lower.indexOf(canonical.toLowerCase() + '/') === 0) {
-        target = canonical + path.slice(canonical.length) + location.search + location.hash;
+        if (path !== '/BitTokens' && path !== '/BitTokens/') {
+          target = canonical + '/' + suffix;
+        }
+      } else if (lower.indexOf('/bittokens/') === 0 && path.indexOf('/BitTokens/') !== 0) {
+        target = canonical + path.slice('/bittokens/'.length) + suffix;
       }
 
-      location.replace(target);
+      if (target) {
+        location.replace(target);
+        return;
+      }
+
+      location.replace(canonical + '/' + suffix);
     })();
   </script>
-  <meta http-equiv="refresh" content="0; url=https://kreitnerl.github.io/BitTokens/">
 </head>
 <body>
   <p>Redirecting to <a href="https://kreitnerl.github.io/BitTokens/">BitTokens</a>…</p>

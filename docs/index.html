@@ -1270,12 +1270,19 @@
       var path = location.pathname;
       var lower = path.toLowerCase();
       var canonical = '/BitTokens';
+      var suffix = location.search + location.hash;
+      var target = null;
+
       if (lower === '/bittokens' || lower === '/bittokens/') {
-        location.replace(canonical + '/' + location.search + location.hash);
-        return;
+        if (path !== '/BitTokens' && path !== '/BitTokens/') {
+          target = canonical + '/' + suffix;
+        }
+      } else if (lower.indexOf('/bittokens/') === 0 && path.indexOf('/BitTokens/') !== 0) {
+        target = canonical + path.slice('/bittokens/'.length) + suffix;
       }
-      if (lower.indexOf('/bittokens/') === 0 && path.indexOf('/BitTokens/') !== 0) {
-        location.replace(canonical + path.slice(10) + location.search + location.hash);
+
+      if (target) {
+        location.replace(target);
       }
     })();
   </script>
