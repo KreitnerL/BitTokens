@@ -4,7 +4,8 @@
     <a href="https://arxiv.org/abs/2510.06824" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/arXiv-2510.06824-b31b1b.svg" alt="arxiv paper"></a>
     <a href="https://openreview.net/forum?id=Bh4Ubk80M8" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/ICML 2026-Spotlight-gold" alt="ICML 2026 Spotlight"></a>
     <a href="https://kreitnerl.github.io/BitTokens/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Website-BitTokens-32a852" alt="BitTokens Website"></a>
-    <a href="bittokens_notebook.ipynb" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Marimo-Notebook-436972" alt="Marimo notebook (browser)"></a>
+    <a href="bittokens_notebook.ipynb" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Jupyter-Notebook-436972" alt="Jupyter notebook (browser)"></a>
+    <a href="https://huggingface.co/datasets/KreitnerL/BitTokens-dataset" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/HuggingFace-Dataset-ffd21e" alt="Hugging Face dataset"></a>
     <a href="LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License"></a>
 </p>
 
@@ -66,19 +67,52 @@ uv pip install git+https://github.com/KellerJordan/Muon
     ```
 
 ### Get the datasets
-1. Generate the number problems for each task for each phase (roughly `20G`):
+#### Exact paper dataset
+To reproduce the manuscript-style training commands below, download the exact synthetic number-problem dataset used by the paper. Set `DATA_PATH` to the directory where the files should be placed, then run:
+
+```sh
+uv run --with huggingface_hub hf download KreitnerL/BitTokens-dataset --repo-type dataset --local-dir "$DATA_PATH"
+```
+
+Dataset page: https://huggingface.co/datasets/KreitnerL/BitTokens-dataset
+
+The dataset contains all synthetic number-problem CSV files referenced by the BitToken configs and the FoNE, xVal, significant-digit, token-digit, and base-10 baseline configs. It includes the standard arithmetic tasks plus the hard tasks: Exponentiation, Mean, and Std. It also includes the binary-uniform curriculum files used by BitTokens where referenced by the configs.
+
+The hosted dataset has 37 CSV files: 14 train CSVs, 14 validation CSVs, and 9 test CSVs. It intentionally does not include FineWeb-derived `.txt` files; those should be downloaded from the public FineWeb dataset instead.
+
+The hosted CSV files keep only the columns required for training and evaluation: `prompt`, `text_prompt`, `answer`, `difficulty`, and `difficulty_sd`.
+
+#### FineWeb text data
+The multitask configs mix the synthetic number-problem data with text data. Download FineWeb from its original public Hugging Face dataset rather than from this repo:
+
+```sh
+uv run --with huggingface_hub hf download HuggingFaceFW/fineweb \
+  --repo-type dataset \
+  --include "sample/10BT/*.parquet" \
+  --local-dir "$DATA_PATH"
+```
+
+Decode the downloaded parquet files to text files:
+
+```sh
+uv run $PROJECT_PATH/data_generation/decode_fineweb.py \
+  --folder_dir "$DATA_PATH/sample/10BT/" \
+  --save_path "$DATA_PATH/"
+```
+
+The training configs expect the FineWeb text files at `$DATA_PATH/000_00000_train.txt` and `$DATA_PATH/val_text.txt`. If your decoded files have different names, create those train/validation text files under `$DATA_PATH` before launching training.
+
+#### Regenerate synthetic number problems
+You can also generate fresh number problems locally. This is useful for development, but it will not produce the exact same examples used in the paper, so training results may differ.
+
+1. Generate the number problems for each task for each phase:
     ```sh
     # Decimal version (used for all base-10 baselines and for testing)
     uv run $PROJECT_PATH/data_generation/data_generation_v2.py --save_dir $DATA_PATH
     # Binary version (used for BitToken training)
     uv run $PROJECT_PATH/data_generation/data_generation_v2.py --save_dir $DATA_PATH --significant_digits_distribution binary_uniform
     ```
-2. Download the fineweb text data
-    Download the fineweb_10BT subset from https://huggingface.co/datasets/HuggingFaceFW/fineweb and save it under `$DATA_PATH/`
-3. Decode fineweb to `.txt` (roughly `2.4G`)
-    ```sh
-    uv run $PROJECT_PATH/data_generation/decode_fineweb.py --folder_dir $DATA_PATH/sample/10BT/ --save_path $DATA_PATH/
-    ```
+2. Download and decode FineWeb as described above if you want to run the mixed numeric/text multitask configs.
 
 
 ## Running experiments
