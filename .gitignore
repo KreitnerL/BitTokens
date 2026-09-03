@@ -171,7 +171,6 @@ slurm*.sh
 *.out
 **/debug*
 
-uv.lock
 .python-version
 wandb/
 
@@ -187,3 +186,4 @@ pyrightconfig.json
 .pyrightignore
 
 __marimo__/
+.ruff_cache

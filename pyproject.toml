@@ -8,12 +8,13 @@ dependencies = [
     "accelerate==1.6.0",
     "anthropic==0.50.0",
     "bitsandbytes==0.45.5",
-    "torch==2.11",
+    "torch==2.11.0+cu126",
+    "flash-attn @ https://github.com/lesj0610/flash-attention/releases/download/v2.8.3-cu12-torch2.11/flash_attn-2.8.3%2Bcu12torch2.11cxx11abiTRUE-cp313-cp313-linux_x86_64.whl",
     "google-genai==1.5.0",
     "ipykernel==6.29.5",
-    "marimo>=0.23.0",
     "ipympl==0.9.7",
     "matplotlib==3.10.1",
+    "muon-optimizer @ git+https://github.com/KellerJordan/Muon@f98f1cacc0263b04290753e32be8d498c1efc806",
     "natsort==8.4.0",
     "openai==1.65.5",
     "overrides==7.7.0",
@@ -36,6 +37,9 @@ dependencies = [
 name = "pytorch-cu126"
 url = "https://download.pytorch.org/whl/cu126"
 explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
 
 [tool.ruff.lint]
 extend-select = ["I"]

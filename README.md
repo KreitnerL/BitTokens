@@ -33,22 +33,20 @@ A more detailed implementation of BitTokens can be found in the [bittoken_embedd
     ```
 2. Sync uv environment
     ```sh
-    # Installs python 3.13, torch 2.11, and other dependencies
+    # Installs Python 3.13, PyTorch 2.11 + CUDA 12.6, FlashAttention, and other dependencies
     uv sync
+    source .venv/bin/activate
     ```
 
-### Install remaining dependencies:
-> [!NOTE]
-> 
-> At the time of writing, there exists no official pre-built wheel for [FlashAttention](https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features) with `torch=2.11` and `python=3.13`. We use [this](https://github.com/Dao-AILab/flash-attention/issues/2425#issue-4196009498) approach instead.
+`uv sync` installs the pinned, pre-built FlashAttention wheel for Linux x86_64, Python 3.13, PyTorch 2.11, CUDA 12, and
+the C++11 ABI; the matching PyTorch CUDA 12.6 wheel; and Muon from a pinned Git commit. Do not replace either GPU package with a different CUDA build unless you deliberately update the compatible pins together.
 
-> [!TIP]
-> Sometimes [FlashAttention](https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features) causes trouble when installing. If you run into an error, please refer to the official install guide.
-    
+Verify the installation:
+
 ```sh
-uv pip install "flash_attn-2.8.3+cu12torch2.11cxx11abiTRUE-cp313-cp313-linux_x86_64.whl" # replace with `flash-attn==2.8.3 --no-build-isolation` once official wheel available
-uv pip install git+https://github.com/KellerJordan/Muon
+uv run python -c 'import torch, flash_attn, muon; print(torch.__version__, torch.version.cuda, flash_attn.__version__)'
 ```
+
 
 
 ### Prepare Environment
@@ -114,6 +112,15 @@ You can also generate fresh number problems locally. This is useful for developm
     ```
 2. Download and decode FineWeb as described above if you want to run the mixed numeric/text multitask configs.
 
+
+## Evaluating the pretrained model
+We offer the checkpoint of a pretrained multiTask BitToken model under [releases](https://github.com/KreitnerL/BitTokens/releases). Download the and extraxt the zip folder and place the output in the project directory. You can use the preconfigured validation datasets like this:
+
+```sh
+uv run eval.py --load_config_from $DATA_PATH/configs/config_bittoken_multiTask.py --tqdm --verbose --num_workers 16 --model_dir $DATA_PATH/trained/multiTask/bittoken/2026-03-29_19-08-00-833751_961/best_checkpoint
+```
+
+Please note that this checkpoint is not identical to the one referenced in the paper, as we recently renamed several model layers—which breaks loading compatibility for older weights. However, this updated model yields very similar performance.
 
 ## Running experiments
 To recreate a BitToken model in a multiTask setting similar to the manuscript, run:
